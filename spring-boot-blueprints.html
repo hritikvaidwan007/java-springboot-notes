@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Spring Boot Blueprints</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --ink:#123C63;
+  --ink-soft:#4A7196;
+  --paper:#E9F1F8;
+  --paper-line:#CDDFEC;
+  --card:#FCFDFE;
+  --kraft:#F5EEDC;
+  --kraft-line:#DCCFA6;
+  --amber:#DB9A34;
+  --commit:#2F9E64;
+  --rollback:#D6483F;
+  --cover-bg:#0B2036;
+  --cover-line:#1C3B58;
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Source Serif 4', serif;
+  font-size:17px;
+  line-height:1.6;
+}
+::selection{background:var(--amber); color:#fff;}
+
+h1,h2,h3,.disp{
+  font-family:'Space Grotesk', sans-serif;
+  color:var(--ink);
+  letter-spacing:-0.01em;
+  margin:0;
+}
+code, .mono{
+  font-family:'JetBrains Mono', monospace;
+}
+a{color:var(--ink);}
+p{margin:0 0 14px 0;}
+img{max-width:100%;}
+
+/* ---------- shared bits ---------- */
+.eyebrow{
+  font-family:'JetBrains Mono', monospace;
+  font-size:12.5px;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+}
+.wrap{max-width:900px; margin:0 auto; padding:0 28px;}
+
+/* ---------- cover ---------- */
+.cover{
+  background:
+    linear-gradient(var(--cover-line) 1px, transparent 1px) 0 0/38px 38px,
+    linear-gradient(90deg, var(--cover-line) 1px, transparent 1px) 0 0/38px 38px,
+    var(--cover-bg);
+  color:#EAF3FB;
+  padding:76px 28px 56px;
+  border-bottom:6px solid var(--amber);
+}
+.cover .wrap{max-width:820px;}
+.cover .eyebrow{color:#8FB6D6; border:1px solid #234b6c; display:inline-block; padding:5px 10px; border-radius:3px;}
+.cover h1{
+  font-size:clamp(38px,7vw,64px);
+  font-weight:700;
+  line-height:1.02;
+  margin:22px 0 14px;
+  color:#fff;
+}
+.cover h1 span{color:var(--amber);}
+.cover .sub{
+  font-size:clamp(16px,2.4vw,20px);
+  color:#C6DCEE;
+  max-width:560px;
+  font-style:italic;
+  margin-bottom:26px;
+}
+.cover .contents-line{
+  font-family:'JetBrains Mono', monospace;
+  font-size:13px;
+  color:#8FB6D6;
+  border-top:1px dashed #2A4E6E;
+  padding-top:18px;
+  line-height:1.8;
+}
+.cover .stamp{
+  margin-top:34px;
+  display:inline-grid;
+  grid-template-columns:auto auto;
+  gap:2px 18px;
+  font-family:'JetBrains Mono', monospace;
+  font-size:12px;
+  color:#9FC1DE;
+  border:1px solid #244a6a;
+  padding:14px 18px;
+  border-radius:4px;
+}
+.cover .stamp b{color:#EAF3FB; font-weight:600;}
+
+/* ---------- intro / toc ---------- */
+.intro{padding:44px 28px 10px;}
+.intro p{max-width:680px;}
+.toc{padding:8px 28px 44px;}
+.toc-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  border-top:1px solid var(--paper-line);
+}
+.toc-row{
+  display:grid;
+  grid-template-columns:64px 1fr auto;
+  gap:14px;
+  align-items:baseline;
+  padding:13px 4px;
+  border-bottom:1px solid var(--paper-line);
+  text-decoration:none;
+  color:var(--ink);
+}
+.toc-row:hover{background:rgba(219,154,52,0.09);}
+.toc-num{font-family:'JetBrains Mono',monospace; color:var(--amber); font-weight:600; font-size:14px;}
+.toc-title{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:16.5px;}
+.toc-tag{font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--ink-soft); text-align:right;}
+
+/* ---------- sheet ---------- */
+.sheet{
+  position:relative;
+  background:
+    linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0/26px 26px,
+    linear-gradient(90deg, var(--paper-line) 1px, transparent 1px) 0 0/26px 26px,
+    var(--paper);
+  border-top:1px solid var(--paper-line);
+  padding:52px 28px 40px;
+}
+.sheet:nth-of-type(even){ }
+.sheet-inner{max-width:820px; margin:0 auto;}
+.sheet-eyebrow{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
+.sheet-eyebrow .dash{flex:1; height:1px; background:var(--paper-line);}
+.sheet h2{
+  font-size:clamp(26px,4.2vw,38px);
+  font-weight:700;
+  margin:6px 0 4px;
+}
+.sheet .tagline{
+  font-style:italic;
+  color:var(--ink-soft);
+  font-size:16px;
+  margin-bottom:26px;
+}
+
+/* analogy box */
+.analogy{
+  background:var(--card);
+  border-left:4px solid var(--amber);
+  padding:16px 20px;
+  border-radius:2px;
+  margin:22px 0 28px;
+  box-shadow:0 1px 3px rgba(18,60,99,0.08);
+}
+.analogy .lbl{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:12.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--amber); display:block; margin-bottom:6px;}
+.analogy p:last-child{margin-bottom:0;}
+
+/* diagram frame */
+.diagram{
+  background:var(--card);
+  border:1px solid var(--paper-line);
+  border-radius:6px;
+  padding:20px 14px 12px;
+  margin:26px 0;
+  overflow-x:auto;
+}
+.diagram .cap{
+  font-family:'JetBrains Mono',monospace;
+  font-size:11.5px;
+  color:var(--ink-soft);
+  text-align:center;
+  margin-top:10px;
+  letter-spacing:.03em;
+}
+svg{overflow:visible; display:block; margin:0 auto;}
+.node{fill:var(--card); stroke:var(--ink); stroke-width:2;}
+.node-transient{stroke:var(--amber);}
+.node-persistent{stroke:var(--commit);}
+.node-removed{stroke:var(--rollback);}
+.node-detached{stroke:var(--ink-soft); stroke-dasharray:5 4;}
+.node-text{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:14.5px; fill:var(--ink); text-anchor:middle;}
+.node-text-sm{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:12.5px; fill:var(--ink); text-anchor:middle;}
+.edge{stroke:var(--ink); stroke-width:2; fill:none;}
+.edge-soft{stroke:var(--ink-soft); stroke-width:1.6; fill:none;}
+.edge-dashed{stroke-dasharray:4 4;}
+.edge-label{font-family:'JetBrains Mono',monospace; font-size:11px; fill:var(--ink-soft);}
+.edge-label-amber{font-family:'JetBrains Mono',monospace; font-size:11px; fill:#A97319;}
+.actor-box{fill:var(--ink); }
+.actor-text{font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:13px; fill:#fff; text-anchor:middle;}
+.lane{stroke:var(--paper-line); stroke-width:1.5;}
+.mk-ink{fill:var(--ink);}
+.mk-amber{fill:var(--amber);}
+.mk-commit{fill:var(--commit);}
+.mk-rollback{fill:var(--rollback);}
+.dot-start{fill:var(--card); stroke:var(--ink); stroke-width:2.5;}
+.dot-end{fill:var(--ink-soft);}
+.circle-commit{fill:var(--commit);}
+.circle-rollback{fill:var(--rollback);}
+.small-text{font-family:'JetBrains Mono',monospace; font-size:11px; fill:var(--ink-soft); text-anchor:middle;}
+
+/* code block */
+.code{
+  background:var(--ink);
+  color:#DCEBF7;
+  font-family:'JetBrains Mono',monospace;
+  font-size:13.3px;
+  line-height:1.65;
+  border-radius:6px;
+  padding:18px 20px;
+  margin:22px 0;
+  overflow-x:auto;
+  white-space:pre;
+}
+.code .c1{color:#8FB6D6;} /* comments */
+.code .kw{color:var(--amber); font-weight:600;} /* annotations/keywords */
+.code .ty{color:#8CD9B3;} /* types */
+.code .st{color:#F2C57C;} /* strings */
+
+/* field note / gotcha */
+.note{
+  background:var(--kraft);
+  border:1px solid var(--kraft-line);
+  border-radius:3px;
+  padding:15px 18px;
+  margin:22px 0;
+  transform:rotate(-0.4deg);
+  box-shadow:0 2px 6px rgba(0,0,0,0.06);
+}
+.note .lbl{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:12px; letter-spacing:.07em; text-transform:uppercase; color:#8A6A22; display:block; margin-bottom:6px;}
+.note p:last-child{margin-bottom:0;}
+
+.gotcha{
+  background:#FBEBE9;
+  border:1px solid #EFC3BE;
+  border-left:4px solid var(--rollback);
+  border-radius:3px;
+  padding:15px 18px;
+  margin:22px 0;
+}
+.gotcha .lbl{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:12px; letter-spacing:.07em; text-transform:uppercase; color:var(--rollback); display:block; margin-bottom:6px;}
+.gotcha p:last-child{margin-bottom:0;}
+
+/* table */
+table.ref{
+  width:100%;
+  border-collapse:collapse;
+  margin:22px 0;
+  font-size:15px;
+  background:var(--card);
+}
+table.ref th, table.ref td{
+  border:1px solid var(--paper-line);
+  padding:9px 12px;
+  text-align:left;
+  vertical-align:top;
+}
+table.ref th{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:12.5px;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+  color:var(--ink-soft);
+  background:rgba(18,60,99,0.045);
+}
+table.ref td code{font-size:13px; background:rgba(18,60,99,0.06); padding:1px 5px; border-radius:3px;}
+
+/* quiz */
+details.quiz{
+  border:1.5px solid var(--ink);
+  border-radius:5px;
+  margin:26px 0 10px;
+  background:var(--card);
+}
+details.quiz summary{
+  cursor:pointer;
+  padding:13px 18px;
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:600;
+  font-size:15px;
+  list-style:none;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+details.quiz summary::-webkit-details-marker{display:none;}
+details.quiz summary::before{
+  content:"?";
+  flex:0 0 auto;
+  width:22px; height:22px;
+  border-radius:50%;
+  background:var(--amber);
+  color:#fff;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:13px;
+  display:flex; align-items:center; justify-content:center;
+}
+details.quiz[open] summary::before{content:"✓"; background:var(--commit);}
+details.quiz .ans{
+  padding:2px 18px 16px 50px;
+  border-top:1px dashed var(--paper-line);
+  padding-top:12px;
+  color:var(--ink-soft);
+  font-size:15.5px;
+}
+details.quiz .ans p:last-child{margin-bottom:0;}
+
+/* title block, engineering-drawing style */
+.stampbox{
+  margin-top:34px;
+  border:1px solid var(--ink);
+  display:inline-grid;
+  grid-template-columns:repeat(4, auto);
+  font-family:'JetBrains Mono',monospace;
+  font-size:11px;
+  color:var(--ink-soft);
+  overflow:hidden;
+}
+.stampbox div{padding:6px 12px; border-right:1px solid var(--paper-line); border-bottom:1px solid var(--paper-line);}
+.stampbox div:last-child{border-right:none;}
+.stampbox b{display:block; color:var(--ink); font-size:12.5px; margin-top:2px;}
+
+/* appendix */
+.appendix{background:
+    linear-gradient(var(--cover-line) 1px, transparent 1px) 0 0/26px 26px,
+    linear-gradient(90deg, var(--cover-line) 1px, transparent 1px) 0 0/26px 26px,
+    var(--cover-bg);
+  color:#EAF3FB;
+}
+.appendix h2{color:#fff;}
+.appendix .tagline{color:#9FC1DE;}
+.appendix table.ref{background:#0F2A46;}
+.appendix table.ref th{background:rgba(255,255,255,0.05); color:#9FC1DE;}
+.appendix table.ref td{border-color:#1C3B58; color:#DCEBF7;}
+.appendix table.ref th{border-color:#1C3B58;}
+.appendix table.ref td code{background:rgba(255,255,255,0.08); color:#F2C57C;}
+
+footer{
+  padding:40px 28px 60px;
+  text-align:center;
+  font-family:'JetBrains Mono',monospace;
+  font-size:12px;
+  color:var(--ink-soft);
+}
+
+@media (max-width:600px){
+  .cover{padding:52px 18px 40px;}
+  .sheet{padding:40px 18px 30px;}
+  .toc-row{grid-template-columns:40px 1fr; }
+  .toc-tag{display:none;}
+  .stampbox{grid-template-columns:repeat(2,auto);}
+}
+</style>
+</head>
+<body>
+
+<!-- global marker defs, reused by every diagram -->
+<svg width="0" height="0" style="position:absolute">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk-ink" d="M0,0 L10,5 L0,10 z"/></marker>
+  <marker id="arrow-amber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk-amber" d="M0,0 L10,5 L0,10 z"/></marker>
+  <marker id="arrow-commit" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk-commit" d="M0,0 L10,5 L0,10 z"/></marker>
+  <marker id="arrow-rollback" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="mk-rollback" d="M0,0 L10,5 L0,10 z"/></marker>
+</defs>
+</svg>
+
+<!-- ============ COVER ============ -->
+<header class="cover">
+  <div class="wrap">
+    <span class="eyebrow">Field Guide No. SB&#8209;01 &nbsp;&middot;&nbsp; Backend Architecture Series</span>
+    <h1>THE SPRING BOOT<br><span>BLUEPRINTS</span></h1>
+    <p class="sub">How an HTTP request becomes a row in a table &mdash; and how that row finds its way back out &mdash; drawn one wire at a time.</p>
+    <div class="contents-line">
+      COVERS &rarr; layered architecture &middot; DispatcherServlet &middot; Spring Data JPA hierarchy &middot; entity lifecycle &middot; EntityManager &amp; PersistenceContext &middot; transactions &middot; cascading
+    </div>
+    <div class="stamp">
+      <div>DRAWN FOR</div><div><b>Backend engineers who want the wiring, not the wave&#8209;of&#8209;the&#8209;hand</b></div>
+      <div>SHEETS</div><div><b>8 + appendix</b></div>
+      <div>SCALE</div><div><b>Not to scale (most Java diagrams aren't)</b></div>
+    </div>
+  </div>
+</header>
+
+<!-- ============ INTRO ============ -->
+<section class="intro">
+  <div class="wrap">
+    <p>Every sheet here follows the same drafting pattern: an <strong>analogy</strong> to give the idea a handle, a <strong>diagram</strong> to show the actual wiring, a short <strong>code sample</strong> to show the syntax, a <strong>field note</strong> for the "why," and a <strong>blueprint check</strong> at the end so you can confirm it stuck before moving on. Sheets 1 and 2 set up vocabulary the rest of the book leans on &mdash; read those first. After that, jump to whatever's on fire.</p>
+  </div>
+</section>
+
+<!-- ============ TOC ============ -->
+<nav class="toc">
+  <div class="wrap">
+    <div class="toc-grid">
+      <a class="toc-row" href="#sheet-1"><span class="toc-num">01</span><span class="toc-title">The Blueprint &mdash; Layered Architecture</span><span class="toc-tag">Controller &middot; Service &middot; Repository</span></a>
+      <a class="toc-row" href="#sheet-2"><span class="toc-num">02</span><span class="toc-title">Anatomy of a Request &mdash; The DispatcherServlet</span><span class="toc-tag">HandlerMapping &middot; HandlerAdapter</span></a>
+      <a class="toc-row" href="#sheet-3"><span class="toc-num">03</span><span class="toc-title">The Repository Toolbox &mdash; JPA Hierarchy</span><span class="toc-tag">CrudRepository &middot; JpaRepository</span></a>
+      <a class="toc-row" href="#sheet-4"><span class="toc-num">04</span><span class="toc-title">The Life of an Entity &mdash; Entity Lifecycle</span><span class="toc-tag">Transient &middot; Persistent &middot; Detached</span></a>
+      <a class="toc-row" href="#sheet-5"><span class="toc-num">05</span><span class="toc-title">The Session's Notebook &mdash; EntityManager</span><span class="toc-tag">PersistenceContext &middot; 1st&#8209;level cache</span></a>
+      <a class="toc-row" href="#sheet-6"><span class="toc-num">06</span><span class="toc-title">All or Nothing &mdash; Transactions</span><span class="toc-tag">@Transactional &middot; commit/rollback</span></a>
+      <a class="toc-row" href="#sheet-7"><span class="toc-num">07</span><span class="toc-title">The Domino Effect &mdash; Cascading</span><span class="toc-tag">CascadeType &middot; orphanRemoval</span></a>
+      <a class="toc-row" href="#sheet-8"><span class="toc-num">08</span><span class="toc-title">Wiring It All Together</span><span class="toc-tag">one request, start to finish</span></a>
+      <a class="toc-row" href="#appendix"><span class="toc-num">A</span><span class="toc-title">Master Legend &mdash; Cheat Sheet</span><span class="toc-tag">everything, one table</span></a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============ SHEET 1 ============ -->
+<section class="sheet" id="sheet-1">
+  <div class="sheet-inner">
+    <div class="sheet-eyebrow"><span class="eyebrow">Sheet 01 / 08</span><span class="dash"></span></div>
+    <h2>The Blueprint</h2>
+    <p class="tagline">Every Spring Boot app you'll ever touch is the same four rooms, wired the same way.</p>
+
+    <div class="analogy">
+      <span class="lbl">The analogy</span>
+      <p>Picture the app as an office with one strict rule: <strong>nobody outside the building touches the warehouse directly.</strong> A visitor (the client) hands their request to the receptionist (<strong>Controller</strong>). The receptionist doesn't make judgment calls &mdash; they pass it straight to the manager (<strong>Service</strong>), who applies the actual business rules and decides what needs to happen. If a trip to the shelves is required, the manager sends the warehouse clerk (<strong>Repository</strong>) &mdash; the only person in the building allowed to touch the database.</p>
+    </div>
+
+    <div class="diagram">
+      <svg viewBox="0 0 870 165" width="100%">
+        <!-- client -->
+        <rect class="node" x="10" y="45" width="90" height="70" rx="8"/>
+        <text class="node-text" x="55" y="82">Client</text>
+        <text class="small-text" x="55" y="132">sends a request</text>
+        <!-- controller -->
+        <rect class="node" x="160" y="45" width="130" height="70" rx="8"/>
+        <text class="node-text" x="225" y="82">Controller</text>
+        <text class="small-text" x="225" y="132">the receptionist</text>
+        <!-- service -->
+        <rect class="node" x="360" y="45" width="130" height="70" rx="8"/>
+        <text class="node-text" x="425" y="82">Service</text>
+        <text class="small-text" x="425" y="132">the decision-maker</text>
+        <!-- repository -->
+        <rect class="node" x="560" y="45" width="130" height="70" rx="8"/>
+        <text class="node-text" x="625" y="82">Repository</text>
+        <text class="small-text" x="625" y="132">the only one who touches the DB</text>
+        <!-- db -->
+        <ellipse class="node" cx="805" cy="55" rx="45" ry="10"/>
+        <rect class="node" x="760" y="55" width="90" height="50" stroke="none" fill="var(--card)"/>
+        <line class="edge" x1="760" y1="55" x2="760" y2="105"/>
+        <line class="edge" x1="850" y1="55" x2="850" y2="105"/>
+        <ellipse class="node" cx="805" cy="105" rx="45" ry="10"/>
+        <text class="small-text" x="805" y="132">Database</text>
+
+        <!-- arrows -->
+        <line class="edge" x1="100" y1="80" x2="160" y2="80" marker-end="url(#arrow)"/>
+        <text class="edge-label" x="130" y="65" text-anchor="middle">HTTP</text>
+
+        <line class="edge" x1="290" y1="80" x2="360" y2="80" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+        <text class="edge-label" x="325" y="65" text-anchor="middle">DTO</text>
+
+        <line class="edge" x1="490" y1="80" x2="560" y2="80" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+        <text class="edge-label" x="525" y="65" text-anchor="middle">Entity</text>
+
+        <line class="edge" x1="690" y1="80" x2="760" y2="80" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+        <text class="edge-label" x="725" y="65" text-anchor="middle">SQL</text>
+      </svg>
+      <div class="cap">FIG 1.1 &mdash; the request/response path, and what language each hop speaks</div>
+    </div>
+
+    <p>The rule worth tattooing on your forearm: <strong>Controllers speak DTO. Repositories speak Entity. The Service layer is the translator standing between them.</strong> A DTO (Data Transfer Object) is a plain shape built for the outside world &mdash; only the fields a client should see, in whatever format the API contract promises. An Entity is a plain shape built for the database &mdash; it mirrors a table, carries JPA annotations, and knows nothing about HTTP.</p>
+    <p>Keep those two worlds apart and you get a real benefit, not just tidiness: you can rename a database column, split a table, or add an internal-only field, and as long as the Service still produces the same DTO shape, nothing about your public API breaks. The reverse is true too &mdash; you can reshape the API response without touching your schema.</p>
+
+    <div class="code">// StudentController.java
+<span class="kw">@RestController</span>
+<span class="kw">@RequestMapping</span>(<span class="st">"/students"</span>)
+public class StudentController {
+
+    <span class="kw">@Autowired</span>
+    private StudentService studentService;
+
+    <span class="kw">@PostMapping</span>
+    public <span class="ty">ResponseEntity</span>&lt;StudentDto&gt; createNewStudent(
+            <span class="kw">@RequestBody</span> <span class="kw">@Valid</span> AddStudentRequestDto dto) {
+        <span class="c1">// Controller never sees a Student entity — only DTOs in, DTOs out.</span>
+        return <span class="ty">ResponseEntity</span>.status(<span class="ty">HttpStatus</span>.CREATED)
+                .body(studentService.createNewStudent(dto));
+    }
+}
+
+// StudentServiceImpl.java
+<span class="kw">@Service</span>
+public class StudentServiceImpl implements StudentService {
+
+    <span class="kw">@Autowired</span>
+    private StudentRepository studentRepository;
+
+    public StudentDto createNewStudent(AddStudentRequestDto dto) {
+        Student entity = mapToEntity(dto);          <span class="c1">// DTO -> Entity</span>
+        Student saved  = studentRepository.save(entity);
+        return mapToDto(saved);                     <span class="c1">// Entity -> DTO</span>
+    }
+}</div>
+
+    <div class="note">
+      <span class="lbl">Field note</span>
+      <p>Why not skip the DTO and just return the Entity? Three reasons it bites people: (1) Hibernate proxies and lazy-loaded associations don't serialize to JSON cleanly and can throw at render time; (2) your Entity may carry fields &mdash; password hashes, internal flags, audit columns &mdash; that were never meant to leave the building; (3) your public API contract becomes hostage to your table schema, so a routine migration turns into a breaking change for every client.</p>
+    </div>
+
+    <details class="quiz">
+      <summary>Blueprint check &mdash; a discount now depends on how many previous orders a customer has. Which layer do you open first?</summary>
+      <div class="ans"><p>The <strong>Service</strong> layer. That's a business rule, not routing (Controller's job) and not a raw data read (Repository's job). The Controller and Repository shouldn't need to change at all.</p></div>
+    </details>
+
+    <div class="stampbox">
+      <div>SHEET<b>01 / 08</b></div>
+      <div>TOPIC<b>Layered Architecture</b></div>
+      <div>REV<b>A</b></div>
+      <div>KEY PATH<b>Client &rarr; Controller &rarr; Service &rarr; Repository &rarr; DB</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SHEET 2 ============ -->
+<section class="sheet" id="sheet-2">
+  <div class="sheet-inner">
+    <div class="sheet-eyebrow"><span class="eyebrow">Sheet 02 / 08</span><span class="dash"></span></div>
+    <h2>Anatomy of a Request</h2>
+    <p class="tagline">Your controller method is the sixth thing that happens, not the first.</p>
+
+    <div class="analogy">
+      <span class="lbl">The analogy</span>
+      <p>Every request that hits your app lands at a control tower before it ever reaches your code. That's the <strong>DispatcherServlet</strong> &mdash; Spring's front controller. It runs no business logic and doesn't know what a "Student" is. Its only job is traffic control: catch the incoming plane, work out which gate it belongs to, have ground crew guide it in, and once your code hands back a package, repackage it in the format the runway expects before sending it back out.</p>
+    </div>
+
+    <div class="diagram">
+      <svg viewBox="0 0 620 820" width="100%">
+        <!-- connecting spine -->
+        <line class="edge" x1="310" y1="84" x2="310" y2="124" marker-end="url(#arrow)"/>
+        <line class="edge" x1="310" y1="188" x2="310" y2="228" marker-end="url(#arrow)"/>
+        <line class="edge" x1="310" y1="292" x2="310" y2="332" marker-end="url(#arrow)"/>
+        <line class="edge" x1="310" y1="396" x2="310" y2="436" marker-end="url(#arrow)"/>
+        <line class="edge" x1="310" y1="500" x2="310" y2="540" marker-end="url(#arrow)"/>
+        <line class="edge" x1="310" y1="604" x2="310" y2="644" marker-end="url(#arrow)"/>
+        <line class="edge" x1="310" y1="708" x2="310" y2="748" marker-end="url(#arrow)"/>
+
+        <!-- step 1 -->
+        <rect class="node" x="50" y="20" width="520" height="64" rx="8"/>
+        <text class="node-text" x="310" y="46">Browser / Postman</text>
+        <text class="small-text" x="310" y="66">sends the HTTP request</text>
+        <!-- step 2 -->
+        <rect class="node" x="50" y="124" width="520" height="64" rx="8"/>
+        <text class="node-text" x="310" y="150">Embedded Tomcat</text>
+        <text class="small-text" x="310" y="170">the server bundled inside your jar</text>
+        <!-- step 3 -->
+        <rect class="node" x="50" y="228" width="520" height="64" rx="8"/>
+        <text class="node-text" x="310" y="254">DispatcherServlet</text>
+        <text class="small-text" x="310" y="274">Spring's one front door for every request</text>
+        <!-- step 4 -->
+        <rect class="node" x="50" y="332" width="520" height="64" rx="8"/>
+        <text class="node-text" x="310" y="358">HandlerMapping</text>
+        <text class="small-text" x="310" y="378">"which controller owns this URL?"</text>
+        <!-- step 5 -->
+        <rect class="node" x="50" y="436" width="520" height="64" rx="8"/>
+        <text class="node-text" x="310" y="462">HandlerAdapter</text>
+        <text class="small-text" x="310" y="482">calls your controller method</text>
+        <!-- step 6 -->
+        <rect class="node node-persistent" x="50" y="540" width="520" height="64" rx="8"/>
+        <text class="node-text" x="310" y="566">Your Controller Method Runs</text>
+        <text class="small-text" x="310" y="586">returns a POJO / DTO</text>
+        <!-- step 7 -->
+        <rect class="node" x="50" y="644" width="520" height="64" rx="8"/>
+        <text class="node-text" x="310" y="670">HttpMessageConverter</text>
+        <text class="small-text" x="310" y="690">e.g. Jackson turns the DTO into JSON</text>
+        <!-- step 8 -->
+        <rect class="node" x="50" y="748" width="520" height="64" rx="8"/>
+        <text class="node-text" x="310" y="774">DispatcherServlet</text>
+        <text class="small-text" x="310" y="794">writes the JSON to the HTTP response</text>
+      </svg>
+      <div class="cap">FIG 2.1 &mdash; one request's round trip, top to bottom</div>
+    </div>
+
+    <p>Two hops are worth slowing down on. <strong>HandlerMapping</strong> is purely a lookup: it scans every <code>@RequestMapping</code>/<code>@GetMapping</code>/etc. registered at startup and finds the one whose path and HTTP method match. <strong>HandlerAdapter</strong> is what actually invokes that method &mdash; resolving <code>@PathVariable</code>, <code>@RequestBody</code>, and <code>@RequestParam</code> arguments before calling it. Your controller method is step six. Everything before it is Spring deciding <em>whether</em> and <em>how</em> to call you at all.</p>
+
+    <div class="note">
+      <span class="lbl">Field note</span>
+      <p>This is also why a Spring Boot jar can be <code>java -jar app.jar</code> with no separate install step: Tomcat isn't a server you deploy <em>to</em>, it's a library embedded inside your application, started by <code>SpringApplication.run()</code>.</p>
+    </div>
+
+    <div class="gotcha">
+      <span class="lbl">Common gotcha</span>
+      <p><strong>404 vs 406, and what they actually tell you.</strong> A <strong>404</strong> means HandlerMapping never found a match &mdash; check the URL path, the HTTP method, and that your controller class is actually component-scanned. A <strong>406 Not Acceptable</strong> means a handler <em>was</em> found and ran fine, but no HttpMessageConverter could produce the format the client's <code>Accept</code> header asked for. Same pipeline, two very different stages failing.</p>
+    </div>
+
+    <details class="quiz">
+      <summary>Blueprint check &mdash; Postman returns 404 for a URL you're sure exists in your controller. Which stage is failing?</summary>
+      <div class="ans"><p><strong>HandlerMapping.</strong> It never matched your URL pattern to a registered handler &mdash; the request never even reached HandlerAdapter, let alone your method. Double-check the path, the HTTP verb, and that the controller's package is under component scan.</p></div>
+    </details>
+
+    <div class="stampbox">
+      <div>SHEET<b>02 / 08</b></div>
+      <div>TOPIC<b>DispatcherServlet Lifecycle</b></div>
+      <div>REV<b>A</b></div>
+      <div>KEY PATH<b>Tomcat &rarr; DispatcherServlet &rarr; HandlerMapping &rarr; HandlerAdapter</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SHEET 3 ============ -->
+<section class="sheet" id="sheet-3">
+  <div class="sheet-inner">
+    <div class="sheet-eyebrow"><span class="eyebrow">Sheet 03 / 08</span><span class="dash"></span></div>
+    <h2>The Repository Toolbox</h2>
+    <p class="tagline">Four interfaces, each one clipping more tools onto the last.</p>
+
+    <div class="analogy">
+      <span class="lbl">The analogy</span>
+      <p><code>Repository&lt;T,ID&gt;</code> is an empty toolbox with a label on it &mdash; a marker interface Spring uses to recognize "this is a data-access contract," with nothing inside. <code>CrudRepository</code> adds the basic hand tools: <code>save()</code>, <code>delete()</code>, <code>findById()</code>. <code>PagingAndSortingRepository</code> clips a page-and-sort attachment onto that same box. <code>QueryByExampleExecutor</code> is a separate accessory that lets you hand it a half-filled-in object and get matches back. <code>JpaRepository</code> is the contractor's full chest &mdash; it inherits everything from the attachments and throws in a few JPA-only extras.</p>
+    </div>
+
+    <div class="diagram">
+      <svg viewBox="0 0 820 460" width="100%">
+        <!-- edges -->
+        <line class="edge" x1="410" y1="65" x2="410" y2="115" marker-end="url(#arrow)"/>
+        <line class="edge" x1="330" y1="175" x2="240" y2="225" marker-end="url(#arrow)"/>
+        <line class="edge-soft edge-dashed" x1="610" y1="225" x2="610" y2="225"/>
+        <line class="edge" x1="240" y1="285" x2="340" y2="360" marker-end="url(#arrow)"/>
+        <line class="edge" x1="610" y1="285" x2="480" y2="360" marker-end="url(#arrow)"/>
+
+        <!-- Repository -->
+        <rect class="node" x="290" y="15" width="240" height="50" rx="8"/>
+        <text class="node-text" x="410" y="45">Repository&lt;T, ID&gt;</text>
+
+        <!-- CrudRepository -->
+        <rect class="node" x="250" y="115" width="320" height="60" rx="8"/>
+        <text class="node-text" x="410" y="141">CrudRepository&lt;T, ID&gt;</text>
+        <text class="small-text" x="410" y="161">basic hand tools: save, delete, find</text>
+
+        <!-- PagingAndSorting -->
+        <rect class="node" x="80" y="225" width="320" height="60" rx="8"/>
+        <text class="node-text-sm" x="240" y="251">PagingAndSortingRepository</text>
+        <text class="small-text" x="240" y="271">adds pagination &amp; sorting</text>
+
+        <!-- QueryByExampleExecutor -->
+        <rect class="node" x="450" y="225" width="320" height="60" rx="8"/>
+        <text class="node-text-sm" x="610" y="251">QueryByExampleExecutor&lt;T&gt;</text>
+        <text class="small-text" x="610" y="271">adds "search by example object"</text>
+
+        <!-- JpaRepository -->
+        <rect class="node node-persistent" x="250" y="360" width="320" height="60" rx="8"/>
+        <text class="node-text" x="410" y="386">JpaRepository&lt;T, ID&gt;</text>
+        <text class="small-text" x="410" y="406">the full tool chest</text>
+      </svg>
+      <div class="cap">FIG 3.1 &mdash; what extends what (QueryByExampleExecutor joins independently, not through CrudRepository)</div>
+    </div>
+
+    <table class="ref">
+      <tr><th>Interface</th><th>Adds</th><th>A few signature methods</th></tr>
+      <tr><td><code>Repository&lt;T,ID&gt;</code></td><td>nothing — just a marker Spring recognizes</td><td><em>(empty)</em></td></tr>
+      <tr><td><code>CrudRepository&lt;T,ID&gt;</code></td><td>basic CRUD</td><td><code>save(S)</code>, <code>findById(ID)</code>, <code>findAll()</code>, <code>deleteById(ID)</code>, <code>count()</code>, <code>existsById(ID)</code></td></tr>
+      <tr><td><code>PagingAndSortingRepository&lt;T,ID&gt;</code></td><td>pagination &amp; sorting</td><td><code>findAll(Pageable)</code>, <code>findAll(Sort)</code></td></tr>
+      <tr><td><code>QueryByExampleExecutor&lt;T&gt;</code></td><td>query-by-example</td><td><code>findAll(Example&lt;S&gt;)</code>, <code>findOne(Example&lt;S&gt;)</code></td></tr>
+      <tr><td><code>JpaRepository&lt;T,ID&gt;</code></td><td>everything above, plus JPA extras</td><td><code>flush()</code>, <code>saveAndFlush(S)</code>, <code>deleteAllInBatch()</code>, <code>getReferenceById(ID)</code></td></tr>
+    </table>
+
+    <div class="note">
+      <span class="lbl">Field note</span>
+      <p>Which one do you actually extend? <strong>Ninety-nine times out of a hundred: <code>JpaRepository&lt;Entity, ID&gt;</code>.</strong> You get everything without thinking about it. Dropping down to plain <code>CrudRepository</code> is a deliberate design-purity move &mdash; usually to stop a particular repository from exposing pagination or batch deletes at all.</p>
+    </div>
+
+    <div class="gotcha">
+      <span class="lbl">Common gotcha</span>
+      <p><code>getOne(ID)</code> is deprecated in modern Spring Data JPA in favor of <code>getReferenceById(ID)</code> &mdash; both return a lazy proxy <em>without</em> hitting the database, which is different from <code>findById(ID)</code>, which queries immediately and returns an <code>Optional</code>. Reach for the reference version only when you need to set a foreign key and don't actually need the row's data.</p>
+    </div>
+
+    <details class="quiz">
+      <summary>Blueprint check &mdash; your interface extends only CrudRepository, and you call findAll(PageRequest.of(0, 20)). Compiles?</summary>
+      <div class="ans"><p><strong>No.</strong> <code>findAll(Pageable)</code> lives on <code>PagingAndSortingRepository</code>, not <code>CrudRepository</code>. Either extend <code>JpaRepository</code> instead, or add <code>PagingAndSortingRepository</code> to the interface's extends list.</p></div>
+    </details>
+
+    <div class="stampbox">
+      <div>SHEET<b>03 / 08</b></div>
+      <div>TOPIC<b>Spring Data JPA Hierarchy</b></div>
+      <div>REV<b>A</b></div>
+      <div>KEY PATH<b>Repository &rarr; CrudRepository &rarr; JpaRepository</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SHEET 4 ============ -->
+<section class="sheet" id="sheet-4">
+  <div class="sheet-inner">
+    <div class="sheet-eyebrow"><span class="eyebrow">Sheet 04 / 08</span><span class="dash"></span></div>
+    <h2>The Life of an Entity</h2>
+    <p class="tagline">Four states. Once you can name which one you're in, half of Hibernate's "mystery" bugs stop being mysteries.</p>
+
+    <div class="analogy">
+      <span class="lbl">The analogy</span>
+      <p>An entity's life reads like a paper form moving through a government office. Fresh off your printer it's just paper &mdash; <strong>Transient</strong> &mdash; nobody in the building knows it exists. File it at the front desk and it becomes <strong>Persistent</strong>: it's in the tracking system now, and anything you scribble on it later gets synced automatically. Photocopy it and walk out with your copy, and that copy is <strong>Detached</strong> &mdash; same data, but the office stopped watching it. Mark the original "VOID &mdash; SHRED" and it's <strong>Removed</strong>: still sitting in the outbox, waiting for the shredder.</p>
+    </div>
+
+    <div class="diagram">
+      <svg viewBox="0 0 980 520" width="100%">
+        <!-- edges first (behind boxes visually is fine since boxes drawn after) -->
+        <line class="edge" x1="76" y1="212" x2="215" y2="96" marker-end="url(#arrow)"/>
+        <text class="edge-label" x="90" y="150" text-anchor="start">new Patient()</text>
+
+        <line class="edge" x1="76" y1="222" x2="470" y2="222" marker-end="url(#arrow)"/>
+        <text class="edge-label" x="180" y="212" text-anchor="middle">find() / getReferenceById()</text>
+
+        <line class="edge" x1="345" y1="114" x2="500" y2="188" marker-end="url(#arrow)"/>
+        <text class="edge-label" x="330" y="160" text-anchor="middle">persist() / save()</text>
+
+        <line class="edge edge-dashed" x1="425" y1="62" x2="895" y2="205" marker-end="url(#arrow-amber)"/>
+        <text class="edge-label-amber" x="640" y="105" text-anchor="middle">garbage collected</text>
+
+        <line class="edge" x1="670" y1="222" x2="730" y2="222" marker-end="url(#arrow)"/>
+        <text class="edge-label" x="700" y="212" text-anchor="middle">remove()</text>
+
+        <line class="edge" x1="890" y1="222" x2="902" y2="222" marker-end="url(#arrow)"/>
+
+        <line class="edge" x1="545" y1="252" x2="545" y2="390" marker-end="url(#arrow)"/>
+        <text class="edge-label" x="470" y="325" text-anchor="middle">detach()</text>
+
+        <line class="edge" x1="605" y1="390" x2="605" y2="252" marker-end="url(#arrow)"/>
+        <text class="edge-label" x="690" y="325" text-anchor="middle">merge()</text>
+
+        <line class="edge edge-dashed" x1="685" y1="410" x2="895" y2="238" marker-end="url(#arrow-amber)"/>
+        <text class="edge-label-amber" x="700" y="345" text-anchor="middle">garbage collected</text>
+
+        <!-- start -->
+        <circle class="dot-start" cx="50" cy="220" r="26"/>
+        <text class="small-text" x="50" y="270">Entity</text>
+
+        <!-- Transient -->
+        <rect class="node node-transient" x="220" y="50" width="210" height="64" rx="8"/>
+        <text class="node-text" x="325" y="76">Transient</text>
+        <text class="small-text" x="325" y="96">an unfiled draft</text>
+
+        <!-- Persistent -->
+        <rect class="node node-persistent" x="470" y="188" width="200" height="64" rx="8"/>
+        <text class="node-text" x="570" y="214">Persistent</text>
+        <text class="small-text" x="570" y="234">filed &amp; being tracked</text>
+
+        <!-- Removed -->
+        <rect class="node node-removed" x="730" y="188" width="160" height="64" rx="8"/>
+        <text class="node-text" x="810" y="214">Removed</text>
+        <text class="small-text" x="810" y="234">marked VOID</text>
+
+        <!-- Detached -->
+        <rect class="node node-detached" x="470" y="390" width="210" height="64" rx="8"/>
+        <text class="node-text" x="575" y="416">Detached</text>
+        <text class="small-text" x="575" y="436">your copy, untracked</text>
+
+        <!-- trash -->
+        <circle class="node" cx="928" cy="222" r="28"/>
+        <text class="small-text" x="928" y="270">gone</text>
+      </svg>
+      <div class="cap">FIG 4.1 &mdash; the four states every entity moves through, and the calls that move it</div>
+    </div>
+
+    <div class="code">EntityManager em = <span class="c1">/* injected */</span>;
+
+Patient p1 = <span class="kw">new</span> Patient();      <span class="c1">// TRANSIENT — just a Java object</span>
+p1.setName(<span class="st">"Asha"</span>);
+
+em.persist(p1);                  <span class="c1">// TRANSIENT -> PERSISTENT (INSERT queued)</span>
+
+p1.setAge(31);                   <span class="c1">// no explicit save() call needed —</span>
+                                  <span class="c1">// dirty checking syncs this at flush/commit</span>
+
+em.detach(p1);                   <span class="c1">// PERSISTENT -> DETACHED (no longer tracked)</span>
+p1.setAge(45);                   <span class="c1">// this change never reaches the database</span>
+
+Patient managed = em.merge(p1);  <span class="c1">// DETACHED -> PERSISTENT (a *new* managed copy!)</span>
+
+em.remove(managed);              <span class="c1">// PERSISTENT -> REMOVED (DELETE queued)</span></div>
+
+    <div class="note">
+      <span class="lbl">Field note</span>
+      <p>You'll meet three overlapping vocabularies for the same four states, and it's worth knowing which one you're reading. <strong>Hibernate's native Session API</strong> uses <code>save()</code> / <code>update()</code> / <code>saveOrUpdate()</code> / <code>delete()</code>. The <strong>JPA standard</strong> (<code>EntityManager</code>, which Hibernate also implements) uses <code>persist()</code> / <code>merge()</code> / <code>remove()</code>. <strong>Spring Data's</strong> <code>JpaRepository.save()</code> is a third thing entirely &mdash; a convenience wrapper that decides between <code>persist()</code> and <code>merge()</code> internally, based on whether the entity's ID field is null.</p>
+    </div>
+
+    <div class="gotcha">
+      <span class="lbl">Common gotcha</span>
+      <p>Dirty checking only works on a <strong>managed (Persistent)</strong> entity. Detach it, mutate it, and nothing complains &mdash; no exception, no warning &mdash; the change simply never reaches the database. This is the classic "I definitely set that field, why didn't it save?" bug, usually caused by mutating an entity after the transaction (and its PersistenceContext) has already closed.</p>
+    </div>
+
+    <details class="quiz">
+      <summary>Blueprint check &mdash; you call em.detach(patient), then patient.setName("New Name"). Does the database get updated?</summary>
+      <div class="ans"><p><strong>No.</strong> Once detached, the entity is no longer tracked by any PersistenceContext, so dirty checking has nothing to compare against. You'd need to call <code>em.merge(patient)</code> to get a managed copy back before the change can be persisted.</p></div>
+    </details>
+
+    <div class="stampbox">
+      <div>SHEET<b>04 / 08</b></div>
+      <div>TOPIC<b>Entity Lifecycle</b></div>
+      <div>REV<b>A</b></div>
+      <div>KEY STATES<b>Transient &middot; Persistent &middot; Detached &middot; Removed</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SHEET 5 ============ -->
+<section class="sheet" id="sheet-5">
+  <div class="sheet-inner">
+    <div class="sheet-eyebrow"><span class="eyebrow">Sheet 05 / 08</span><span class="dash"></span></div>
+    <h2>The Session's Notebook</h2>
+    <p class="tagline">Why asking for the same row twice doesn't mean two trips to the database.</p>
+
+    <div class="analogy">
+      <span class="lbl">The analogy</span>
+      <p>The <strong>PersistenceContext</strong> is the <strong>EntityManager</strong>'s short-term memory for the current session. Ask it for the same entity twice inside one transaction, and the second time it checks its own notepad before ever bothering the database. This isn't opt-in caching &mdash; it's simply how every managed entity behaves for as long as its transaction is open.</p>
+    </div>
+
+    <div class="diagram">
+      <svg viewBox="0 0 900 400" width="100%">
+        <!-- lane headers -->
+        <rect class="node" x="20" y="16" width="140" height="42" rx="6"/>
+        <text class="node-text-sm" x="90" y="42">Entity</text>
+        <rect class="node" x="255" y="16" width="140" height="42" rx="6"/>
+        <text class="node-text-sm" x="325" y="42">EntityManager</text>
+        <rect class="node" x="495" y="16" width="150" height="42" rx="6"/>
+        <text class="node-text-sm" x="570" y="42">PersistenceContext</text>
+        <rect class="node" x="735" y="16" width="140" height="42" rx="6"/>
+        <text class="node-text-sm" x="805" y="42">Database</text>
+
+        <!-- lanes -->
+        <line class="lane" x1="90" y1="60" x2="90" y2="370"/>
+        <line class="lane" x1="325" y1="60" x2="325" y2="370"/>
+        <line class="lane" x1="570" y1="60" x2="570" y2="370"/>
+        <line class="lane" x1="805" y1="60" x2="805" y2="370"/>
+
+        <!-- row 1: persist -->
+        <line class="edge" x1="90" y1="105" x2="325" y2="105" marker-end="url(#arrow)"/>
+        <text class="edge-label" x="205" y="95" text-anchor="middle">persist()</text>
+        <rect class="node node-transient" x="290" y="118" width="80" height="22" rx="11"/>
+        <text class="small-text" x="330" y="133">Transient</text>
+
+        <line class="edge" x1="325" y1="160" x2="570" y2="160" marker-end="url(#arrow)"/>
+        <text class="edge-label" x="447" y="150" text-anchor="middle">register as managed</text>
+        <rect class="node node-persistent" x="530" y="173" width="90" height="22" rx="11"/>
+        <text class="small-text" x="575" y="188">Persistent</text>
+
+        <line class="edge" x1="570" y1="215" x2="805" y2="215" marker-end="url(#arrow)"/>
+        <text class="edge-label" x="687" y="205" text-anchor="middle">INSERT (at flush / commit)</text>
+
+        <!-- row 2: find -->
+        <line class="edge" x1="90" y1="270" x2="325" y2="270" marker-end="url(#arrow)"/>
+        <text class="edge-label" x="205" y="260" text-anchor="middle">find(id)</text>
+
+        <line class="edge" x1="325" y1="300" x2="570" y2="300" marker-end="url(#arrow)"/>
+        <text class="edge-label" x="447" y="290" text-anchor="middle">check this session's cache first</text>
+
+        <line class="edge edge-dashed" x1="570" y1="330" x2="805" y2="330" marker-end="url(#arrow-amber)"/>
+        <text class="edge-label-amber" x="687" y="320" text-anchor="middle">if not cached: SELECT</text>
+
+        <line class="edge-soft" x1="805" y1="355" x2="90" y2="355" marker-end="url(#arrow)"/>
+        <text class="edge-label" x="447" y="348" text-anchor="middle">store in PersistenceContext, then return to caller</text>
+      </svg>
+      <div class="cap">FIG 5.1 &mdash; a persist() and a find() within the same PersistenceContext</div>
+    </div>
+
+    <p>The PersistenceContext is often called the <strong>first-level cache</strong>, and it's scoped to one <code>EntityManager</code> &mdash; which, inside a <code>@Transactional</code> Spring method, means it's scoped to one transaction. Every managed entity you touch during that transaction is registered here, along with a snapshot of its field values at load time. At flush (usually just before commit), Hibernate compares each managed entity against its snapshot and issues <code>UPDATE</code> statements only for the ones that actually changed &mdash; this comparison is what people mean by "dirty checking."</p>
+
+    <div class="note">
+      <span class="lbl">Field note</span>
+      <p>A fact that surprises people the first time: call <code>find()</code> for the same ID twice inside one PersistenceContext, and you don't just get two <em>equal</em> objects &mdash; you get the exact <strong>same object reference</strong>. <code>a == b</code> is true, not just <code>a.equals(b)</code>. That's a direct consequence of the cache: the second call never leaves the notebook.</p>
+    </div>
+
+    <details class="quiz">
+      <summary>Blueprint check &mdash; inside one transaction, you call studentRepository.findById(5) twice. How many SELECTs hit the database?</summary>
+      <div class="ans"><p><strong>One.</strong> The first call queries the database and registers the entity in the PersistenceContext. The second call finds it already sitting in the notebook and returns it directly &mdash; no second trip.</p></div>
+    </details>
+
+    <div class="stampbox">
+      <div>SHEET<b>05 / 08</b></div>
+      <div>TOPIC<b>EntityManager &amp; PersistenceContext</b></div>
+      <div>REV<b>A</b></div>
+      <div>KEY IDEA<b>1st-level cache + dirty checking, scoped to one transaction</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SHEET 6 ============ -->
+<section class="sheet" id="sheet-6">
+  <div class="sheet-inner">
+    <div class="sheet-eyebrow"><span class="eyebrow">Sheet 06 / 08</span><span class="dash"></span></div>
+    <h2>All or Nothing</h2>
+    <p class="tagline">A transaction is a pact: every query in the block lands, or none of them do.</p>
+
+    <div class="analogy">
+      <span class="lbl">The analogy</span>
+      <p>Moving money from Account A to Account B is two writes: subtract here, add there. If the second write fails after the first one already landed, money quietly vanishes &mdash; unless something guarantees both happen together or neither does. That guarantee is a <strong>transaction</strong>.</p>
+    </div>
+
+    <div class="diagram">
+      <svg viewBox="0 0 820 290" width="100%">
+        <line class="edge" x1="76" y1="150" x2="150" y2="150" marker-end="url(#arrow)"/>
+        <text class="edge-label" x="112" y="138" text-anchor="middle">BEGIN</text>
+
+        <line class="edge" x1="370" y1="130" x2="440" y2="90" marker-end="url(#arrow)"/>
+        <line class="edge" x1="370" y1="175" x2="440" y2="215" marker-end="url(#arrow)"/>
+
+        <line class="edge" x1="650" y1="85" x2="726" y2="85" marker-end="url(#arrow-commit)"/>
+        <text class="edge-label" x="688" y="73" text-anchor="middle">commit</text>
+
+        <line class="edge" x1="650" y1="225" x2="726" y2="225" marker-end="url(#arrow-rollback)"/>
+        <text class="edge-label" x="688" y="213" text-anchor="middle">rollback</text>
+
+        <circle class="dot-start" cx="50" cy="150" r="26"/>
+        <text class="small-text" x="50" y="200">initiate</text>
+
+        <rect class="node" x="150" y="95" width="220" height="110" rx="8"/>
+        <text class="node-text-sm" x="260" y="128">Transaction {</text>
+        <text class="small-text" x="260" y="148">Query 1, Query 2, ...</text>
+        <text class="small-text" x="260" y="166">Query N</text>
+        <text class="node-text-sm" x="260" y="188">}</text>
+
+        <rect class="node node-persistent" x="440" y="55" width="210" height="60" rx="8"/>
+        <text class="node-text-sm" x="545" y="80">All queries</text>
+        <text class="node-text-sm" x="545" y="98">executed successfully</text>
+
+        <rect class="node node-removed" x="440" y="195" width="210" height="60" rx="8"/>
+        <text class="node-text-sm" x="545" y="220">Any query</text>
+        <text class="node-text-sm" x="545" y="238">failed</text>
+
+        <circle cx="760" cy="85" r="34" class="circle-commit"/>
+        <text x="760" y="90" text-anchor="middle" style="fill:#fff; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:11px;">COMMIT</text>
+
+        <circle cx="760" cy="225" r="34" class="circle-rollback"/>
+        <text x="760" y="230" text-anchor="middle" style="fill:#fff; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:9.5px;">ROLLBACK</text>
+      </svg>
+      <div class="cap">FIG 6.1 &mdash; a transaction is a single unit: it succeeds whole or fails whole</div>
+    </div>
+
+    <div class="code"><span class="kw">@Transactional</span>
+public void transferBalance(Long fromId, Long toId, BigDecimal amount) {
+    Account from = accountRepository.findById(fromId).orElseThrow();
+    Account to   = accountRepository.findById(toId).orElseThrow();
+
+    from.setBalance(from.getBalance().subtract(amount));
+    to.setBalance(to.getBalance().add(amount));
+
+    <span class="c1">// if this throws, BOTH balance changes above are rolled back too —</span>
+    <span class="c1">// Hibernate typically defers UPDATEs to flush time, right before commit</span>
+    if (to.getBalance().compareTo(BigDecimal.ZERO) &lt; 0) {
+        throw new IllegalStateException(<span class="st">"insufficient funds"</span>);
+    }
+}</div>
+
+    <div class="note">
+      <span class="lbl">Field note</span>
+      <p>By default, <code>@Transactional</code> rolls back on <strong>unchecked exceptions</strong> (anything extending <code>RuntimeException</code>) but <strong>not</strong> on checked exceptions. If your method throws a checked exception and you still need a rollback, say so explicitly: <code>@Transactional(rollbackFor = Exception.class)</code>.</p>
+    </div>
+
+    <div class="gotcha">
+      <span class="lbl">Common gotcha &mdash; the self-invocation trap</span>
+      <p><code>@Transactional</code> works through a Spring-generated proxy wrapped around your bean. Call a transactional method <em>from another method in the same class</em> (<code>this.someMethod()</code>) and you bypass that proxy entirely &mdash; the call never goes through the interceptor, so no transaction opens, silently. This is one of the most common "why isn't my transaction working" bugs in Spring.</p>
+    </div>
+
+    <details class="quiz">
+      <summary>Blueprint check &mdash; methodA() (no @Transactional) calls this.methodB() (@Transactional), same class. Does methodB run inside a transaction?</summary>
+      <div class="ans"><p><strong>No.</strong> The internal call bypasses Spring's proxy, so the <code>@Transactional</code> annotation on methodB is silently ignored. To fix it, either call methodB through a separately injected bean, or move it to another Spring-managed class.</p></div>
+    </details>
+
+    <div class="stampbox">
+      <div>SHEET<b>06 / 08</b></div>
+      <div>TOPIC<b>Transactions</b></div>
+      <div>REV<b>A</b></div>
+      <div>KEY IDEA<b>all queries in the block succeed together, or roll back together</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SHEET 7 ============ -->
+<section class="sheet" id="sheet-7">
+  <div class="sheet-inner">
+    <div class="sheet-eyebrow"><span class="eyebrow">Sheet 07 / 08</span><span class="dash"></span></div>
+    <h2>The Domino Effect</h2>
+    <p class="tagline">Cascading decides whether an operation on the parent ripples down to its children &mdash; or stops at the front door.</p>
+
+    <div class="analogy">
+      <span class="lbl">The analogy</span>
+      <p>Think of a parent entity and its children as a family heading out the door. Cascading is the house rule that decides whether the kids come along automatically, or stay behind unless someone fetches them separately. Save the parent with the right cascade setting, and the children get saved in the same trip. Delete the parent without that setting, and the children are left standing on the porch &mdash; often triggering a foreign-key error, since they still point at a parent that no longer exists.</p>
+    </div>
+
+    <div class="diagram">
+      <svg viewBox="0 0 820 300" width="100%">
+        <line class="edge" x1="410" y1="90" x2="180" y2="200" marker-end="url(#arrow)"/>
+        <line class="edge" x1="410" y1="90" x2="410" y2="200" marker-end="url(#arrow)"/>
+        <line class="edge" x1="410" y1="90" x2="640" y2="200" marker-end="url(#arrow)"/>
+        <text class="edge-label" x="410" y="150" text-anchor="middle">cascade = ALL, orphanRemoval = true</text>
+
+        <rect class="node node-persistent" x="310" y="30" width="200" height="60" rx="8"/>
+        <text class="node-text" x="410" y="56">Order</text>
+        <text class="small-text" x="410" y="76">the parent</text>
+
+        <rect class="node" x="90" y="200" width="180" height="60" rx="8"/>
+        <text class="node-text-sm" x="180" y="226">OrderItem</text>
+        <text class="small-text" x="180" y="246">child #1</text>
+
+        <rect class="node" x="320" y="200" width="180" height="60" rx="8"/>
+        <text class="node-text-sm" x="410" y="226">OrderItem</text>
+        <text class="small-text" x="410" y="246">child #2</text>
+
+        <rect class="node" x="550" y="200" width="180" height="60" rx="8"/>
+        <text class="node-text-sm" x="640" y="226">OrderItem</text>
+        <text class="small-text" x="640" y="246">child #3</text>
+      </svg>
+      <div class="cap">FIG 7.1 &mdash; one Order, three OrderItems, wired with cascade = ALL</div>
+    </div>
+
+    <table class="ref">
+      <tr><th>CascadeType</th><th>When you ___ the parent</th><th>&hellip;this also happens to the children</th></tr>
+      <tr><td><code>PERSIST</code></td><td>save a new parent</td><td>new children get saved too</td></tr>
+      <tr><td><code>MERGE</code></td><td>merge a detached parent</td><td>their detached children get merged too</td></tr>
+      <tr><td><code>REMOVE</code></td><td>delete the parent</td><td>children get deleted too</td></tr>
+      <tr><td><code>REFRESH</code></td><td>refresh the parent from the DB</td><td>children get refreshed too</td></tr>
+      <tr><td><code>DETACH</code></td><td>detach the parent</td><td>children get detached too</td></tr>
+      <tr><td><code>ALL</code></td><td>any of the above</td><td>every row above applies</td></tr>
+    </table>
+
+    <div class="code"><span class="kw">@Entity</span>
+public class Order {
+    <span class="kw">@Id</span> <span class="kw">@GeneratedValue</span>
+    private Long id;
+
+    <span class="kw">@OneToMany</span>(mappedBy = <span class="st">"order"</span>,
+               cascade = CascadeType.ALL,
+               orphanRemoval = <span class="ty">true</span>)
+    private <span class="ty">List</span>&lt;OrderItem&gt; items = <span class="kw">new</span> <span class="ty">ArrayList</span>&lt;&gt;();
+}</div>
+
+    <div class="note">
+      <span class="lbl">Field note &mdash; orphanRemoval is not CascadeType.REMOVE</span>
+      <p>They sound similar and get confused constantly. <code>CascadeType.REMOVE</code> fires only when you explicitly delete the <strong>parent</strong> &mdash; <code>orderRepository.delete(order)</code> &mdash; and every child goes with it. <code>orphanRemoval = true</code> fires on a narrower, different trigger: pulling a child out of the parent's in-memory collection, <code>order.getItems().remove(someItem)</code>, even while the Order itself lives on. That "orphaned" item gets deleted from the database at the next flush &mdash; no explicit delete call needed.</p>
+    </div>
+
+    <div class="gotcha">
+      <span class="lbl">Common gotcha</span>
+      <p>Cascade is an <strong>application-level</strong> concept &mdash; it only fires through EntityManager operations. It's a different mechanism from a database's own <code>ON DELETE CASCADE</code> foreign key constraint, which fires at the database layer regardless of whether Hibernate is even involved. And be careful putting <code>CascadeType.ALL</code> on <em>both</em> sides of a bidirectional relationship &mdash; cascade should almost always live only on the side that "owns" the lifecycle (parent &rarr; children), or you risk a child's save accidentally cascading back up and touching a parent shared by other records.</p>
+    </div>
+
+    <details class="quiz">
+      <summary>Blueprint check &mdash; Order has cascade = CascadeType.PERSIST only (no REMOVE). You call orderRepository.delete(order). What happens to its OrderItems?</summary>
+      <div class="ans"><p><strong>They are not cascade-deleted.</strong> Only PERSIST was configured, so Hibernate makes no attempt to remove the children. In practice, since the child rows still hold a foreign key pointing at the now-deleted Order, you'll typically get a foreign-key constraint violation rather than a clean delete &mdash; a strong hint that REMOVE (or ALL) was missing.</p></div>
+    </details>
+
+    <div class="stampbox">
+      <div>SHEET<b>07 / 08</b></div>
+      <div>TOPIC<b>Cascading</b></div>
+      <div>REV<b>A</b></div>
+      <div>KEY IDEA<b>CascadeType decides which operations ripple to children; orphanRemoval is separate</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ SHEET 8 ============ -->
+<section class="sheet" id="sheet-8">
+  <div class="sheet-inner">
+    <div class="sheet-eyebrow"><span class="eyebrow">Sheet 08 / 08</span><span class="dash"></span></div>
+    <h2>Wiring It All Together</h2>
+    <p class="tagline">One POST request, start to finish, with every earlier sheet doing its part.</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 900 230" width="100%">
+        <line class="edge" x1="66" y1="140" x2="110" y2="140" marker-end="url(#arrow)"/>
+        <line class="edge" x1="250" y1="140" x2="280" y2="140" marker-end="url(#arrow)"/>
+        <line class="edge" x1="410" y1="140" x2="440" y2="140" marker-end="url(#arrow)"/>
+        <line class="edge" x1="570" y1="140" x2="600" y2="140" marker-end="url(#arrow)"/>
+        <line class="edge" x1="730" y1="140" x2="765" y2="140" marker-end="url(#arrow)"/>
+
+        <circle class="dot-start" cx="40" cy="140" r="26"/>
+        <text class="small-text" x="40" y="190">Client</text>
+
+        <rect class="node" x="110" y="110" width="140" height="60" rx="8"/>
+        <text class="node-text-sm" x="180" y="136">Dispatcher-</text>
+        <text class="node-text-sm" x="180" y="152">Servlet</text>
+
+        <rect class="node" x="280" y="110" width="130" height="60" rx="8"/>
+        <text class="node-text-sm" x="345" y="145">Controller</text>
+
+        <rect class="node" x="440" y="110" width="130" height="60" rx="8"/>
+        <text class="node-text-sm" x="505" y="145">Service</text>
+
+        <rect class="node" x="600" y="110" width="130" height="60" rx="8"/>
+        <text class="node-text-sm" x="665" y="145">Repository</text>
+
+        <ellipse class="node" cx="810" cy="120" rx="45" ry="10"/>
+        <rect class="node" x="765" y="120" width="90" height="40" stroke="none" fill="var(--card)"/>
+        <line class="edge" x1="765" y1="120" x2="765" y2="160"/>
+        <line class="edge" x1="855" y1="120" x2="855" y2="160"/>
+        <ellipse class="node" cx="810" cy="160" rx="45" ry="10"/>
+        <text class="small-text" x="810" y="188">Database</text>
+
+        <line class="edge-soft" x1="440" y1="205" x2="855" y2="205"/>
+        <line class="edge-soft" x1="440" y1="200" x2="440" y2="210"/>
+        <line class="edge-soft" x1="855" y1="200" x2="855" y2="210"/>
+        <text class="edge-label" x="647" y="222" text-anchor="middle">@Transactional — one PersistenceContext for the whole method</text>
+      </svg>
+      <div class="cap">FIG 8.1 &mdash; the whole pipeline, condensed</div>
+    </div>
+
+    <p>Take a POST to <code>/students</code> from the top:</p>
+
+    <table class="ref">
+      <tr><th>#</th><th>What happens</th><th>Covered in</th></tr>
+      <tr><td>1</td><td>Client sends <code>POST /students</code> with a JSON body.</td><td>Sheet 2</td></tr>
+      <tr><td>2</td><td>Embedded Tomcat hands it to DispatcherServlet; HandlerMapping finds <code>StudentController.createNewStudent</code>; HandlerAdapter resolves the JSON into an <code>AddStudentRequestDto</code>.</td><td>Sheet 2</td></tr>
+      <tr><td>3</td><td>The Controller passes that DTO straight to the Service. It never touches a Student entity.</td><td>Sheet 1</td></tr>
+      <tr><td>4</td><td>The Service method is <code>@Transactional</code> &mdash; Spring opens a transaction and hands it one EntityManager / PersistenceContext for the whole method.</td><td>Sheets 5 &amp; 6</td></tr>
+      <tr><td>5</td><td>The Service maps the DTO into <code>new Student()</code>. Right now, this object is <strong>Transient</strong>.</td><td>Sheet 4</td></tr>
+      <tr><td>6</td><td><code>studentRepository.save(entity)</code> runs &mdash; internally calls <code>persist()</code> since the ID is null. The entity becomes <strong>Persistent</strong> and tracked; the INSERT is queued, not necessarily fired yet.</td><td>Sheets 3 &amp; 4</td></tr>
+      <tr><td>7</td><td>If Student has related children configured with cascading, they get saved in the same trip.</td><td>Sheet 7</td></tr>
+      <tr><td>8</td><td>The method returns normally &rarr; the transaction commits &rarr; Hibernate flushes &rarr; the INSERT actually hits the database.</td><td>Sheet 6</td></tr>
+      <tr><td>9</td><td>The Service maps the now-saved entity (ID populated) back into a <code>StudentDto</code> and returns it to the Controller.</td><td>Sheet 1</td></tr>
+      <tr><td>10</td><td>DispatcherServlet runs the DTO through Jackson, writes JSON to the response.</td><td>Sheet 2</td></tr>
+    </table>
+
+    <details class="quiz">
+      <summary>Blueprint check &mdash; a teammate adds a repository call directly inside the Controller, skipping the Service. Name two rules from this set they just broke.</summary>
+      <div class="ans"><p><strong>First</strong>, the layering rule from Sheet 1: the Controller now speaks Entity instead of DTO, coupling the public API directly to the database schema. <strong>Second</strong>, that call happens outside any <code>@Transactional</code> boundary, so if the returned entity has lazy associations accessed later — say, while Jackson serializes it — there's a real risk of a <code>LazyInitializationException</code>, because the PersistenceContext that could have loaded them has already closed (Sheets 5 &amp; 6).</p></div>
+    </details>
+
+    <div class="stampbox">
+      <div>SHEET<b>08 / 08</b></div>
+      <div>TOPIC<b>Full Request Walkthrough</b></div>
+      <div>REV<b>A</b></div>
+      <div>KEY IDEA<b>every sheet in this set is one stage of the same trip</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ APPENDIX ============ -->
+<section class="sheet appendix" id="appendix">
+  <div class="sheet-inner">
+    <div class="sheet-eyebrow"><span class="eyebrow" style="color:#8FB6D6;">Appendix</span><span class="dash" style="background:#1C3B58;"></span></div>
+    <h2>Master Legend</h2>
+    <p class="tagline">Every term in this set, one table, for when you just need the word back.</p>
+
+    <table class="ref">
+      <tr><th>Term</th><th>Plain-English meaning</th><th>Sheet</th></tr>
+      <tr><td><code>DispatcherServlet</code></td><td>Spring's single front door for every HTTP request; routes, doesn't decide</td><td>2</td></tr>
+      <tr><td>HandlerMapping</td><td>looks up which controller method owns a URL + HTTP verb</td><td>2</td></tr>
+      <tr><td>HandlerAdapter</td><td>actually invokes the matched controller method</td><td>2</td></tr>
+      <tr><td>DTO</td><td>a shape built for the outside world — only what the API contract needs</td><td>1</td></tr>
+      <tr><td>Entity</td><td>a shape built for the database — mirrors a table, carries JPA annotations</td><td>1</td></tr>
+      <tr><td><code>CrudRepository</code></td><td>basic save / find / delete tools</td><td>3</td></tr>
+      <tr><td><code>JpaRepository</code></td><td>everything CrudRepository + paging/sorting + JPA extras</td><td>3</td></tr>
+      <tr><td>Transient</td><td>a plain object, not yet known to any PersistenceContext</td><td>4</td></tr>
+      <tr><td>Persistent</td><td>tracked by a PersistenceContext; changes auto-sync at flush</td><td>4</td></tr>
+      <tr><td>Detached</td><td>has data, no longer tracked; edits silently never reach the DB</td><td>4</td></tr>
+      <tr><td>Removed</td><td>marked for deletion; DELETE fires at flush/commit</td><td>4</td></tr>
+      <tr><td>PersistenceContext</td><td>the EntityManager's notebook for the current session (1st-level cache)</td><td>5</td></tr>
+      <tr><td>Dirty checking</td><td>Hibernate comparing a managed entity to its load-time snapshot at flush</td><td>5</td></tr>
+      <tr><td><code>@Transactional</code></td><td>wraps a method's DB work in one commit-or-rollback unit</td><td>6</td></tr>
+      <tr><td>Self-invocation trap</td><td>calling a @Transactional method from inside the same class skips the proxy</td><td>6</td></tr>
+      <tr><td><code>CascadeType</code></td><td>which operations on a parent ripple down to its children</td><td>7</td></tr>
+      <tr><td><code>orphanRemoval</code></td><td>removing a child from the parent's collection deletes it, even without cascade REMOVE</td><td>7</td></tr>
+    </table>
+  </div>
+</section>
+
+<footer>
+  END OF SET &middot; 8 SHEETS + APPENDIX &middot; REV A<br>
+  Diagrams are drawn for clarity, not to scale &mdash; when in doubt, the official Spring &amp; Hibernate docs still outrank this notebook.
+</footer>
+
+</body>
+</html>
