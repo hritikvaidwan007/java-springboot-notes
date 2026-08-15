@@ -1,0 +1,28 @@
+name: Convert HTML to PDF
+on:
+  push:
+    paths:
+      - '.github/workflows/convert-html-to-pdf.yml'
+      - '*.html'
+      - '!*.pdf'
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: browser-actions/setup-chrome@v1
+      - name: Convert HTML files to PDF
+        shell: bash
+        run: |
+          set -e
+          mkdir -p pdf
+          for f in *.html; do
+            out="pdf/${f%.html}.pdf"
+            echo "Converting $f -> $out"
+            chrome --headless --no-sandbox --disable-gpu --no-pdf-header-footer --print-to-pdf="$out" "file://$GITHUB_WORKSPACE/$f"
+          done
+          ls -lh pdf
+      - uses: actions/upload-artifact@v4
+        with:
+          name: java-springboot-notes-pdfs
+          path: pdf/*.pdf
