@@ -1,0 +1,1080 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Java Records &amp; Lombok @Builder — Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --border: #1e293b;
+    --accent: #a78bfa;
+    --accent-2: #38bdf8;
+    --accent-3: #34d399;
+    --accent-4: #f472b6;
+    --accent-5: #fbbf24;
+    --accent-6: #fb923c;
+    --text-primary: #e2e8f0;
+    --text-muted: #64748b;
+    --code-bg: #0d1321;
+    --lombok-green: #d4a843;
+    --record-blue: #60a5fa;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'Space Grotesk', sans-serif;
+    line-height: 1.65;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background:
+      radial-gradient(ellipse at 10% 5%, rgba(167,139,250,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 90%, rgba(56,189,248,0.04) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(212,168,67,0.03) 0%, transparent 60%);
+    pointer-events: none; z-index: 0;
+  }
+
+  .page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 2rem 5rem;
+    position: relative; z-index: 1;
+  }
+
+  /* ── HEADER ── */
+  header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+    animation: fadeDown 0.6s ease forwards;
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  header h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 400;
+    background: linear-gradient(135deg, var(--accent), var(--lombok-green));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.4rem;
+  }
+
+  header p {
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+  }
+
+  .tags { display: flex; justify-content: center; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+
+  .tag {
+    padding: 0.2rem 0.7rem; border-radius: 999px;
+    font-size: 0.68rem; font-family: 'JetBrains Mono', monospace;
+    font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  }
+
+  .tag-l { background: rgba(212,168,67,0.15); color: var(--lombok-green); border: 1px solid rgba(212,168,67,0.3); }
+  .tag-r { background: rgba(96,165,250,0.15); color: var(--record-blue); border: 1px solid rgba(96,165,250,0.3); }
+  .tag-b { background: rgba(167,139,250,0.15); color: var(--accent); border: 1px solid rgba(167,139,250,0.3); }
+  .tag-d { background: rgba(52,211,153,0.15); color: var(--accent-3); border: 1px solid rgba(52,211,153,0.3); }
+
+  /* ── NAV ── */
+  .toc {
+    display: flex; flex-wrap: wrap; justify-content: center;
+    gap: 0.4rem; margin-bottom: 3rem;
+    animation: fadeUp 0.5s ease forwards; animation-delay: 0.15s; opacity: 0;
+  }
+
+  .toc a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem; color: var(--text-muted);
+    text-decoration: none; padding: 0.3rem 0.7rem;
+    border: 1px solid var(--border); border-radius: 6px;
+    transition: all 0.2s ease;
+  }
+
+  .toc a:hover { color: var(--accent); border-color: var(--accent); background: rgba(167,139,250,0.05); }
+
+  /* ── SECTIONS ── */
+  section {
+    margin-bottom: 3rem;
+    opacity: 0; animation: fadeUp 0.5s ease forwards;
+  }
+
+  section:nth-child(2)  { animation-delay: 0.1s; }
+  section:nth-child(3)  { animation-delay: 0.15s; }
+  section:nth-child(4)  { animation-delay: 0.2s; }
+  section:nth-child(5)  { animation-delay: 0.25s; }
+  section:nth-child(6)  { animation-delay: 0.3s; }
+  section:nth-child(7)  { animation-delay: 0.35s; }
+  section:nth-child(8)  { animation-delay: 0.4s; }
+  section:nth-child(9)  { animation-delay: 0.45s; }
+  section:nth-child(10) { animation-delay: 0.5s; }
+  section:nth-child(11) { animation-delay: 0.55s; }
+  section:nth-child(12) { animation-delay: 0.6s; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem; text-transform: uppercase;
+    letter-spacing: 0.14em; color: var(--accent);
+    margin-bottom: 0.3rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+
+  .section-label .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor;
+  }
+
+  .section-label.gold   { color: var(--lombok-green); }
+  .section-label.blue   { color: var(--record-blue); }
+  .section-label.green  { color: var(--accent-3); }
+  .section-label.purple { color: var(--accent-2); }
+  .section-label.pink   { color: var(--accent-4); }
+  .section-label.yellow { color: var(--accent-5); }
+  .section-label.orange { color: var(--accent-6); }
+
+  h2 {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    font-weight: 400; margin-bottom: 0.8rem;
+    color: var(--text-primary);
+  }
+
+  h3 {
+    font-size: 0.92rem; font-weight: 600;
+    margin: 1.3rem 0 0.5rem; color: var(--accent-5);
+  }
+  h3:first-of-type { margin-top: 0.5rem; }
+
+  .desc {
+    font-size: 0.88rem; color: var(--text-muted);
+    margin-bottom: 1rem; max-width: 80ch;
+  }
+
+  p, li { font-size: 0.85rem; color: var(--text-muted); line-height: 1.7; }
+
+  ul { list-style: none; padding: 0; }
+  ul li { position: relative; padding-left: 1.2rem; margin-bottom: 0.3rem; }
+  ul li::before { content: '›'; position: absolute; left: 0; color: var(--accent); font-weight: 700; }
+
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem; background: var(--code-bg);
+    padding: 0.12rem 0.4rem; border-radius: 4px;
+    color: var(--accent); border: 1px solid var(--border);
+  }
+
+  pre {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1.2rem 1.4rem;
+    overflow-x: auto; margin: 0.6rem 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.76rem; line-height: 1.85; color: #94a3b8;
+  }
+
+  pre .kw   { color: #c084fc; }
+  pre .ann  { color: #fbbf24; }
+  pre .str  { color: #34d399; }
+  pre .cm   { color: #475569; }
+  pre .type { color: #38bdf8; }
+  pre .fn   { color: #f472b6; }
+  pre .num  { color: #fb923c; }
+  pre .rec  { color: #60a5fa; }
+
+  table { width: 100%; border-collapse: collapse; margin: 0.6rem 0; font-size: 0.82rem; }
+
+  th {
+    text-align: left; padding: 0.55rem 0.7rem;
+    border-bottom: 2px solid var(--border);
+    color: var(--accent); font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em;
+  }
+
+  td {
+    padding: 0.45rem 0.7rem;
+    border-bottom: 1px solid rgba(30,41,59,0.5);
+    color: var(--text-muted); font-size: 0.82rem;
+  }
+
+  tr:hover td { color: var(--text-primary); background: rgba(167,139,250,0.03); }
+
+  /* ── TWO-COLUMN ── */
+  .cols-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+
+  .col-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    transition: border-color 0.3s;
+  }
+
+  .col-box:hover { border-color: rgba(167,139,250,0.25); }
+
+  /* ── THREE-COLUMN ── */
+  .cols-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.2rem;
+  }
+
+  /* ── DIAGRAM ── */
+  .diagram {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem 1.5rem;
+    margin: 1rem 0 1.2rem;
+    overflow-x: auto;
+  }
+
+  .diagram-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--text-muted);
+    margin-bottom: 1.2rem; text-align: center;
+  }
+
+  .diagram svg {
+    display: block; margin: 0 auto;
+    width: 100%; max-height: 600px;
+  }
+
+  /* ── FLOW STEPS ── */
+  .flow {
+    display: flex; flex-wrap: wrap; gap: 0.4rem;
+    align-items: center; margin: 0.8rem 0;
+  }
+
+  .step {
+    background: var(--code-bg); border: 1px solid var(--border);
+    border-radius: 7px; padding: 0.5rem 0.9rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; color: var(--text-primary);
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .step:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .step.glow  { border-color: var(--accent-3); background: rgba(52,211,153,0.08); }
+  .farr { color: var(--text-muted); font-size: 1.1rem; flex-shrink: 0; }
+
+  /* ── DIVIDER ── */
+  hr.sep {
+    border: none; border-top: 1px solid var(--border);
+    margin: 2.5rem 0; opacity: 0.5;
+  }
+
+  /* ── CALLOUT ── */
+  .callout {
+    background: rgba(167,139,250,0.05);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+  }
+
+  .callout strong { color: var(--accent); }
+
+  .callout.gold {
+    background: rgba(212,168,67,0.05);
+    border-left-color: var(--lombok-green);
+  }
+  .callout.gold strong { color: var(--lombok-green); }
+
+  .callout.green {
+    background: rgba(52,211,153,0.05);
+    border-left-color: var(--accent-3);
+  }
+  .callout.green strong { color: var(--accent-3); }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center; margin-top: 3rem;
+    padding-top: 2rem; border-top: 1px solid var(--border);
+    color: var(--text-muted); font-size: 0.72rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  footer span { color: var(--accent); }
+
+  @media (max-width: 860px) {
+    .cols-2, .cols-3 { grid-template-columns: 1fr; }
+    .page { padding: 1rem 1rem 3rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+<!-- ════════════ HEADER ════════════ -->
+<header>
+  <h1>Java Records &amp; Lombok @Builder</h1>
+  <p>records · @builder · @builder.default · toBuilder · class vs record · decision guide</p>
+  <div class="tags">
+    <span class="tag tag-r">Java Records</span>
+    <span class="tag tag-l">Lombok @Builder</span>
+    <span class="tag tag-b">Immutable Data</span>
+    <span class="tag tag-d">Design Patterns</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#record">Java Record</a>
+  <a href="#builder">@Builder</a>
+  <a href="#builder-how">How @Builder Works</a>
+  <a href="#example">Record + @Builder</a>
+  <a href="#compact">Compact Constructor</a>
+  <a href="#class-vs-record">Class vs Record</a>
+  <a href="#builder-default">@Builder.Default</a>
+  <a href="#toBuilder">toBuilder</a>
+  <a href="#when-class">When to Use Class</a>
+  <a href="#guide">Decision Guide</a>
+  <a href="#mental">Mental Model</a>
+</nav>
+
+<!-- ════════════ 1 · JAVA RECORD ════════════ -->
+<section id="record">
+  <div class="section-label blue"><span class="dot"></span> Java Record</div>
+  <h2>Java Record — Immutable Data Carrier</h2>
+  <p class="desc">A record is a compact way to define an immutable data carrier. Java automatically generates the canonical constructor, accessors, <code>equals()</code>, <code>hashCode()</code>, and <code>toString()</code>.</p>
+
+  <div class="cols-2">
+    <div class="col-box">
+      <h3>Syntax</h3>
+<pre><span class="ann">@Builder</span>
+<span class="kw">public record</span> <span class="rec">User</span>(
+    <span class="type">String</span> name,
+    <span class="type">String</span> email,
+    <span class="kw">int</span> age
+) {}</pre>
+      <div class="callout">
+        <strong>Key point:</strong> The record keyword tells Java to auto-generate all boilerplate — constructor, accessors, <code>equals()</code>, <code>hashCode()</code>, and <code>toString()</code>.
+      </div>
+    </div>
+    <div class="col-box">
+      <h3>Accessors</h3>
+      <p>Record accessors use the component name directly — no <code>get</code> prefix:</p>
+<pre><span class="rec">User</span> user = <span class="kw">new</span> <span class="rec">User</span>(<span class="str">"John"</span>, <span class="str">"john@est.com"</span>, <span class="num">20</span>);
+
+<span class="cm">// Accessor calls (NOT getName(), getEmail())</span>
+user.<span class="fn">name</span>();    <span class="cm">// "John"</span>
+user.<span class="fn">email</span>();   <span class="cm">// "john@est.com"</span>
+user.<span class="fn">age</span>();     <span class="cm">// 20</span></pre>
+      <h3>What's Auto-Generated</h3>
+      <ul>
+        <li>Canonical constructor (all parameters)</li>
+        <li>Accessor methods: <code>component()</code></li>
+        <li><code>equals()</code> and <code>hashCode()</code></li>
+        <li><code>toString()</code></li>
+        <li>All component fields are <code>final</code></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ 2 · HOW RECORDS ARE CONSTRUCTED ════════════ -->
+<section>
+  <div class="section-label purple"><span class="dot"></span> Anatomy</div>
+  <h2>Record Construction — Visual Breakdown</h2>
+  <p class="desc">Understanding what Java generates behind the scenes when you declare a record.</p>
+
+  <div class="diagram">
+    <div class="diagram-title">What a Record Declaration Generates</div>
+    <svg viewBox="0 0 1000 340" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+      <!-- Source code box -->
+      <rect x="30" y="30" width="320" height="280" rx="12" fill="rgba(96,165,250,0.04)" stroke="#60a5fa" stroke-width="1.5" stroke-dasharray="6 3"/>
+      <text x="190" y="58" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="600" letter-spacing="1.5">YOU WRITE</text>
+
+      <rect x="50" y="75" width="280" height="36" rx="6" fill="#0d1321" stroke="#fbbf24" stroke-width="1.5"/>
+      <text x="190" y="99" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="600">@Builder</text>
+
+      <rect x="50" y="120" width="280" height="36" rx="6" fill="#0d1321" stroke="#60a5fa" stroke-width="1.5"/>
+      <text x="190" y="144" text-anchor="middle" fill="#60a5fa" font-size="11" font-weight="600">public record User(...)</text>
+
+      <rect x="50" y="165" width="280" height="36" rx="6" fill="#0d1321" stroke="#94a3b8" stroke-width="1"/>
+      <text x="190" y="189" text-anchor="middle" fill="#94a3b8" font-size="10">String name, String email, int age</text>
+
+      <rect x="50" y="210" width="280" height="36" rx="6" fill="rgba(52,211,153,0.06)" stroke="#34d399" stroke-width="1"/>
+      <text x="190" y="234" text-anchor="middle" fill="#34d399" font-size="10">{ compact constructor }</text>
+
+      <rect x="50" y="255" width="280" height="36" rx="6" fill="#0d1321" stroke="#60a5fa" stroke-width="1"/>
+      <text x="190" y="279" text-anchor="middle" fill="#60a5fa" font-size="11">}</text>
+
+      <!-- Arrow -->
+      <path d="M350 170 L420 170" stroke="#64748b" stroke-width="2.5" marker-end="url(#aG)"/>
+      <text x="385" y="158" text-anchor="middle" fill="#64748b" font-size="9">compiles</text>
+      <text x="385" y="170" text-anchor="middle" fill="#64748b" font-size="9">to</text>
+
+      <!-- Generated box -->
+      <rect x="430" y="30" width="540" height="280" rx="12" fill="rgba(52,211,153,0.03)" stroke="#34d399" stroke-width="1.5" stroke-dasharray="6 3"/>
+      <text x="700" y="58" text-anchor="middle" fill="#34d399" font-size="12" font-weight="600" letter-spacing="1.5">JAVA GENERATES</text>
+
+      <!-- Generated items -->
+      <rect x="455" y="75" width="240" height="38" rx="7" fill="#0d1321" stroke="#c084fc" stroke-width="1.5"/>
+      <text x="575" y="99" text-anchor="middle" fill="#c084fc" font-size="10" font-weight="600">Canonical Constructor</text>
+
+      <rect x="715" y="75" width="240" height="38" rx="7" fill="#0d1321" stroke="#f472b6" stroke-width="1.5"/>
+      <text x="835" y="99" text-anchor="middle" fill="#f472b6" font-size="10" font-weight="600">name() · email() · age()</text>
+
+      <rect x="455" y="125" width="240" height="38" rx="7" fill="#0d1321" stroke="#34d399" stroke-width="1.5"/>
+      <text x="575" y="149" text-anchor="middle" fill="#34d399" font-size="10" font-weight="600">equals() &amp; hashCode()</text>
+
+      <rect x="715" y="125" width="240" height="38" rx="7" fill="#0d1321" stroke="#38bdf8" stroke-width="1.5"/>
+      <text x="835" y="149" text-anchor="middle" fill="#38bdf8" font-size="10" font-weight="600">toString()</text>
+
+      <rect x="455" y="175" width="240" height="38" rx="7" fill="#0d1321" stroke="#60a5fa" stroke-width="1.5"/>
+      <text x="575" y="199" text-anchor="middle" fill="#60a5fa" font-size="10" font-weight="600">final fields</text>
+
+      <rect x="715" y="175" width="240" height="38" rx="7" fill="#0d1321" stroke="#fbbf24" stroke-width="1.5"/>
+      <text x="835" y="199" text-anchor="middle" fill="#fbbf24" font-size="10" font-weight="600">@Builder methods</text>
+
+      <!-- From Lombok -->
+      <rect x="455" y="230" width="500" height="60" rx="8" fill="rgba(212,168,67,0.04)" stroke="var(--lombok-green)" stroke-width="1" stroke-dasharray="4 3"/>
+      <text x="705" y="255" text-anchor="middle" fill="var(--lombok-green)" font-size="10" font-weight="600">LOMBOK generates:</text>
+      <text x="705" y="275" text-anchor="middle" fill="#94a3b8" font-size="10">User.builder().name("...").email("...").age(20).build()</text>
+
+      <defs>
+        <marker id="aG" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#64748b"/></marker>
+      </defs>
+    </svg>
+  </div>
+</section>
+
+<!-- ════════════ 3 · LOMBOK @BUILDER ════════════ -->
+<section id="builder">
+  <div class="section-label gold"><span class="dot"></span> Lombok @Builder</div>
+  <h2>@Builder — Fluent Construction Pattern</h2>
+  <p class="desc"><code>@Builder</code> generates a fluent Builder pattern, allowing readable, step-by-step object construction.</p>
+
+  <div class="cols-2">
+    <div class="col-box">
+      <h3>On a Class</h3>
+<pre><span class="ann">@Builder</span>
+<span class="kw">public class</span> <span class="type">User</span> {
+    <span class="kw">private</span> <span class="type">String</span> name;
+    <span class="kw">private</span> <span class="type">String</span> email;
+    <span class="kw">private int</span> age;
+}</pre>
+    </div>
+    <div class="col-box">
+      <h3>On a Record</h3>
+<pre><span class="ann">@Builder</span>
+<span class="kw">public record</span> <span class="rec">User</span>(
+    <span class="type">String</span> name,
+    <span class="type">String</span> email,
+    <span class="kw">int</span> age
+) {}</pre>
+    </div>
+  </div>
+
+  <h3>Usage (identical for both)</h3>
+<pre><span class="rec">User</span> user = <span class="rec">User</span>.<span class="fn">builder</span>()
+    .<span class="fn">name</span>(<span class="str">"John"</span>)
+    .<span class="fn">email</span>(<span class="str">"john@est.com"</span>)
+    .<span class="fn">age</span>(<span class="num">20</span>)
+    .<span class="fn">build</span>();</pre>
+
+  <div class="callout gold">
+    <strong>Why use @Builder?</strong> When a constructor has many parameters (especially optional ones), the builder pattern provides readable construction code compared to long constructor argument lists or multiple setter calls.
+  </div>
+</section>
+
+<!-- ════════════ 4 · HOW @BUILDER WORKS ════════════ -->
+<section id="builder-how">
+  <div class="section-label gold"><span class="dot"></span> Under the Hood</div>
+  <h2>What @Builder Generates</h2>
+  <p class="desc">Think of the builder as a temporary object that collects values. <code>build()</code> then creates the final object.</p>
+
+  <div class="diagram">
+    <div class="diagram-title">@Builder Pattern — Two-Phase Construction</div>
+    <svg viewBox="0 0 1000 300" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+      <!-- Phase 1: Collecting -->
+      <rect x="30" y="30" width="440" height="240" rx="14" fill="rgba(212,168,67,0.03)" stroke="var(--lombok-green)" stroke-width="1.5" stroke-dasharray="6 3"/>
+      <text x="250" y="60" text-anchor="middle" fill="var(--lombok-green)" font-size="13" font-weight="600" letter-spacing="2">PHASE 1: COLLECTING (Builder)</text>
+
+      <rect x="55" y="80" width="390" height="45" rx="8" fill="#0d1321" stroke="#c084fc" stroke-width="1.5"/>
+      <text x="250" y="100" text-anchor="middle" fill="#c084fc" font-size="11" font-weight="600">static Builder builder()</text>
+      <text x="250" y="116" text-anchor="middle" fill="#64748b" font-size="9">returns: new User.Builder()</text>
+
+      <line x1="250" y1="125" x2="250" y2="145" stroke="#64748b" stroke-width="1.5" marker-end="url(#aG)"/>
+
+      <rect x="55" y="150" width="180" height="40" rx="6" fill="#0d1321" stroke="#f472b6" stroke-width="1"/>
+      <text x="145" y="175" text-anchor="middle" fill="#f472b6" font-size="10">builder.name("John")</text>
+
+      <rect x="255" y="150" width="190" height="40" rx="6" fill="#0d1321" stroke="#f472b6" stroke-width="1"/>
+      <text x="350" y="175" text-anchor="middle" fill="#f472b6" font-size="10">builder.email("j@e.com")</text>
+
+      <rect x="55" y="200" width="180" height="40" rx="6" fill="#0d1321" stroke="#f472b6" stroke-width="1"/>
+      <text x="145" y="225" text-anchor="middle" fill="#f472b6" font-size="10">builder.age(20)</text>
+
+      <rect x="255" y="200" width="190" height="40" rx="6" fill="rgba(251,191,36,0.08)" stroke="#fbbf24" stroke-width="1.5"/>
+      <text x="350" y="225" text-anchor="middle" fill="#fbbf24" font-size="10" font-weight="600">each returns `this`</text>
+
+      <!-- Arrow -->
+      <path d="M470 150 L530 150" stroke="#64748b" stroke-width="2.5" marker-end="url(#aG)"/>
+      <text x="500" y="138" text-anchor="middle" fill="#64748b" font-size="9">.build()</text>
+
+      <!-- Phase 2: Building -->
+      <rect x="540" y="30" width="430" height="240" rx="14" fill="rgba(52,211,153,0.03)" stroke="#34d399" stroke-width="1.5" stroke-dasharray="6 3"/>
+      <text x="755" y="60" text-anchor="middle" fill="#34d399" font-size="13" font-weight="600" letter-spacing="2">PHASE 2: BUILDING (Final Object)</text>
+
+      <rect x="565" y="80" width="380" height="45" rx="8" fill="#0d1321" stroke="#34d399" stroke-width="1.5"/>
+      <text x="755" y="100" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600">User build()</text>
+      <text x="755" y="116" text-anchor="middle" fill="#64748b" font-size="9">return new User(name, email, age)</text>
+
+      <line x1="755" y1="125" x2="755" y2="150" stroke="#64748b" stroke-width="1.5" marker-end="url(#aG)"/>
+
+      <!-- Final object -->
+      <rect x="615" y="155" width="280" height="90" rx="10" fill="rgba(96,165,250,0.06)" stroke="#60a5fa" stroke-width="2"/>
+      <text x="755" y="180" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="700">User {</text>
+      <text x="755" y="200" text-anchor="middle" fill="#94a3b8" font-size="10">name = "John", email = "j@e.com"</text>
+      <text x="755" y="218" text-anchor="middle" fill="#94a3b8" font-size="10">age = 20</text>
+      <text x="755" y="236" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="700">}</text>
+    </svg>
+  </div>
+
+  <div class="cols-2">
+    <div class="col-box">
+      <h3>Generated <code>builder()</code> Method</h3>
+<pre><span class="kw">public static</span> <span class="type">AuditPublishRequest.Builder</span>
+    <span class="fn">builder</span>() {
+  <span class="kw">return new</span> <span class="type">AuditPublishRequest.Builder</span>();
+}</pre>
+    </div>
+    <div class="col-box">
+      <h3>Generated <code>build()</code> Method</h3>
+<pre><span class="kw">public</span> <span class="type">AuditPublishRequest</span> <span class="fn">build</span>() {
+  <span class="kw">return new</span> <span class="type">AuditPublishRequest</span>(
+      eventKind, action, entity,
+      entityId, summary, actor, changes
+  );
+}</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ 5 · RECORD + @BUILDER EXAMPLE ════════════ -->
+<section id="example">
+  <div class="section-label blue"><span class="dot"></span> Real-World Example</div>
+  <h2>AuditPublishRequest — Record + @Builder</h2>
+  <p class="desc">This combines a record for immutable data with <code>@Builder</code> for readable construction. A compact canonical constructor normalizes null changes into an empty immutable list.</p>
+
+<pre><span class="ann">@Builder</span>
+<span class="kw">public record</span> <span class="rec">AuditPublishRequest</span>(
+    <span class="type">String</span> eventKind,
+    <span class="type">String</span> action,
+    <span class="type">String</span> entity,
+    <span class="type">String</span> entityId,
+    <span class="type">String</span> summary,
+    <span class="type">Actor</span> actor,
+    <span class="type">List</span>&lt;<span class="type">ChangeEntry</span>&gt; changes
+) {
+    <span class="kw">public</span> <span class="rec">AuditPublishRequest</span> {
+        changes = changes == <span class="kw">null</span> ? <span class="type">List</span>.<span class="fn">of</span>() : changes;
+    }
+}</pre>
+
+  <h3>Construction with Builder</h3>
+<pre><span class="type">AuditPublishRequest</span> req = <span class="type">AuditPublishRequest</span>.<span class="fn">builder</span>()
+    .<span class="fn">eventKind</span>(<span class="str">"USER_CREATED"</span>)
+    .<span class="fn">action</span>(<span class="str">"CREATE"</span>)
+    .<span class="fn">entity</span>(<span class="str">"User"</span>)
+    .<span class="fn">entityId</span>(<span class="str">"usr_123"</span>)
+    .<span class="fn">summary</span>(<span class="str">"New user registered"</span>)
+    .<span class="fn">actor</span>(actor)
+    .<span class="cm">// changes omitted → null → normalized to List.of()</span>
+    .<span class="fn">build</span>();</pre>
+
+  <div class="callout green">
+    <strong>Result:</strong> Null-safe by design — if <code>changes</code> is omitted, the compact constructor normalizes <code>null → List.of() → []</code>. This avoids null checks for all callers.
+  </div>
+</section>
+
+<!-- ════════════ 6 · COMPACT CANONICAL CONSTRUCTOR ════════════ -->
+<section id="compact">
+  <div class="section-label green"><span class="dot"></span> Compact Constructor</div>
+  <h2>Compact Canonical Constructor</h2>
+  <p class="desc">The compact constructor has no parameter list — it implicitly receives all record components. Its job is <strong>validation and normalization</strong> during construction.</p>
+
+  <div class="cols-2">
+    <div class="col-box">
+      <h3>Syntax</h3>
+<pre><span class="kw">public record</span> <span class="rec">AuditPublishRequest</span>(
+    <span class="type">String</span> eventKind,
+    <span class="type">String</span> action,
+    <span class="type">List</span>&lt;<span class="type">ChangeEntry</span>&gt; changes
+) {
+    <span class="cm">// Compact constructor — no params!</span>
+    <span class="kw">public</span> <span class="rec">AuditPublishRequest</span> {
+        changes = changes == <span class="kw">null</span>
+            ? <span class="type">List</span>.<span class="fn">of</span>()
+            : changes;
+    }
+}</pre>
+    </div>
+    <div class="col-box">
+      <h3>What It Does</h3>
+
+      <div class="diagram" style="padding:1.2rem; margin:0.5rem 0">
+        <div class="diagram-title">Null Normalization Flow</div>
+        <svg viewBox="0 0 400 140" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+          <rect x="10" y="50" width="80" height="40" rx="6" fill="#0d1321" stroke="#f472b6" stroke-width="1.5"/>
+          <text x="50" y="75" text-anchor="middle" fill="#f472b6" font-size="11" font-weight="600">null</text>
+
+          <line x1="90" y1="70" x2="130" y2="70" stroke="#64748b" stroke-width="1.5" marker-end="url(#aG)"/>
+
+          <polygon points="185,30 245,70 185,110 125,70" fill="rgba(251,191,36,0.06)" stroke="#fbbf24" stroke-width="1.5"/>
+          <text x="185" y="66" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="600">== null</text>
+          <text x="185" y="80" text-anchor="middle" fill="#fbbf24" font-size="9" font-weight="600">?</text>
+
+          <!-- Yes -->
+          <line x1="245" y1="70" x2="285" y2="70" stroke="#34d399" stroke-width="1.5" marker-end="url(#aG)"/>
+          <text x="265" y="62" fill="#34d399" font-size="8">yes</text>
+
+          <rect x="290" y="50" width="100" height="40" rx="6" fill="#0d1321" stroke="#34d399" stroke-width="1.5"/>
+          <text x="340" y="75" text-anchor="middle" fill="#34d399" font-size="10" font-weight="600">List.of()</text>
+
+          <!-- No -->
+          <line x1="185" y1="110" x2="185" y2="130" stroke="#38bdf8" stroke-width="1" stroke-dasharray="3 2"/>
+          <text x="200" y="125" fill="#38bdf8" font-size="8">no → keep</text>
+        </svg>
+      </div>
+
+      <ul>
+        <li>Runs <em>before</em> the object is fully constructed</li>
+        <li>Can validate input (throw on bad data)</li>
+        <li>Can normalize/transform values</li>
+        <li>No explicit parameter list needed</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ 7 · CLASS VS RECORD ════════════ -->
+<section id="class-vs-record">
+  <div class="section-label orange"><span class="dot"></span> Comparison</div>
+  <h2>Class vs Record — Side by Side</h2>
+  <p class="desc">When to choose each — based on the object's purpose and required features.</p>
+
+  <div class="diagram">
+    <div class="diagram-title">Class vs Record — Feature Comparison</div>
+    <svg viewBox="0 0 1000 420" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+      <!-- Headers -->
+      <rect x="30" y="20" width="300" height="50" rx="10" fill="rgba(167,139,250,0.1)" stroke="var(--accent)" stroke-width="2"/>
+      <text x="180" y="50" text-anchor="middle" fill="var(--accent)" font-size="15" font-weight="700">CLASS</text>
+
+      <rect x="350" y="20" width="50" height="50" rx="8" fill="#0d1321" stroke="#64748b" stroke-width="1"/>
+      <text x="375" y="50" text-anchor="middle" fill="#64748b" font-size="11">vs</text>
+
+      <rect x="420" y="20" width="300" height="50" rx="10" fill="rgba(96,165,250,0.1)" stroke="var(--record-blue)" stroke-width="2"/>
+      <text x="570" y="50" text-anchor="middle" fill="var(--record-blue)" font-size="15" font-weight="700">RECORD</text>
+
+      <!-- Feature rows -->
+      <!-- Row 1: Purpose -->
+      <rect x="30" y="85" width="300" height="42" rx="6" fill="#0d1321" stroke="var(--border)" stroke-width="1"/>
+      <text x="180" y="111" text-anchor="middle" fill="var(--accent)" font-size="11" font-weight="600">General-purpose object</text>
+
+      <text x="375" y="111" text-anchor="middle" fill="#475569" font-size="11">vs</text>
+
+      <rect x="420" y="85" width="300" height="42" rx="6" fill="#0d1321" stroke="var(--border)" stroke-width="1"/>
+      <text x="570" y="111" text-anchor="middle" fill="var(--record-blue)" font-size="11" font-weight="600">Immutable data carrier</text>
+
+      <!-- Row 2: Mutability -->
+      <rect x="30" y="135" width="300" height="42" rx="6" fill="#0d1321" stroke="var(--border)" stroke-width="1"/>
+      <text x="180" y="161" text-anchor="middle" fill="#94a3b8" font-size="11">Can be mutable (setters)</text>
+
+      <text x="375" y="161" text-anchor="middle" fill="#475569" font-size="11">vs</text>
+
+      <rect x="420" y="135" width="300" height="42" rx="6" fill="#0d1321" stroke="var(--border)" stroke-width="1"/>
+      <text x="570" y="161" text-anchor="middle" fill="#94a3b8" font-size="11">Components are final</text>
+
+      <!-- Row 3: Getters -->
+      <rect x="30" y="185" width="300" height="42" rx="6" fill="#0d1321" stroke="var(--border)" stroke-width="1"/>
+      <text x="180" y="211" text-anchor="middle" fill="#94a3b8" font-size="11">getX() convention</text>
+
+      <text x="375" y="211" text-anchor="middle" fill="#475569" font-size="11">vs</text>
+
+      <rect x="420" y="185" width="300" height="42" rx="6" fill="#0d1321" stroke="var(--border)" stroke-width="1"/>
+      <text x="570" y="211" text-anchor="middle" fill="#94a3b8" font-size="11">component() accessor</text>
+
+      <!-- Row 4: equals/hashCode -->
+      <rect x="30" y="235" width="300" height="42" rx="6" fill="#0d1321" stroke="var(--border)" stroke-width="1"/>
+      <text x="180" y="261" text-anchor="middle" fill="#f472b6" font-size="11">Must generate / implement</text>
+
+      <text x="375" y="261" text-anchor="middle" fill="#475569" font-size="11">vs</text>
+
+      <rect x="420" y="235" width="300" height="42" rx="6" fill="#0d1321" stroke="var(--border)" stroke-width="1"/>
+      <text x="570" y="261" text-anchor="middle" fill="#34d399" font-size="11">Auto-generated ✓</text>
+
+      <!-- Row 5: Inheritance -->
+      <rect x="30" y="285" width="300" height="42" rx="6" fill="#0d1321" stroke="var(--border)" stroke-width="1"/>
+      <text x="180" y="311" text-anchor="middle" fill="#34d399" font-size="11">Can extend a class ✓</text>
+
+      <text x="375" y="311" text-anchor="middle" fill="#475569" font-size="11">vs</text>
+
+      <rect x="420" y="285" width="300" height="42" rx="6" fill="#0d1321" stroke="var(--border)" stroke-width="1"/>
+      <text x="570" y="311" text-anchor="middle" fill="#f472b6" font-size="11">Cannot extend a class ✗</text>
+
+      <!-- Row 6: JPA -->
+      <rect x="30" y="335" width="300" height="42" rx="6" fill="#0d1321" stroke="var(--border)" stroke-width="1"/>
+      <text x="180" y="361" text-anchor="middle" fill="#34d399" font-size="11">Common choice for JPA ✓</text>
+
+      <text x="375" y="361" text-anchor="middle" fill="#475569" font-size="11">vs</text>
+
+      <rect x="420" y="335" width="300" height="42" rx="6" fill="#0d1321" stroke="var(--border)" stroke-width="1"/>
+      <text x="570" y="361" text-anchor="middle" fill="#f472b6" font-size="11">Generally avoid for JPA ✗</text>
+
+      <!-- Row 7: DTO -->
+      <rect x="30" y="385" width="300" height="42" rx="6" fill="#0d1321" stroke="var(--border)" stroke-width="1"/>
+      <text x="180" y="411" text-anchor="middle" fill="#94a3b8" font-size="11">Works for DTOs</text>
+
+      <text x="375" y="411" text-anchor="middle" fill="#475569" font-size="11">vs</text>
+
+      <rect x="420" y="385" width="300" height="42" rx="6" fill="rgba(52,211,153,0.08)" stroke="#34d399" stroke-width="1.5"/>
+      <text x="570" y="411" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600">Excellent fit for DTOs ✓✓</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ════════════ 8 · @BUILDER.DEFAULT ════════════ -->
+<section id="builder-default">
+  <div class="section-label gold"><span class="dot"></span> @Builder.Default</div>
+  <h2>@Builder.Default — Respecting Field Initializers</h2>
+  <p class="desc">By default, <code>@Builder</code> ignores field initializers. <code>@Builder.Default</code> tells Lombok to use the initializer as the default value when the builder caller does not specify that field.</p>
+
+  <div class="cols-2">
+    <div class="col-box">
+      <h3>Without @Builder.Default</h3>
+<pre><span class="ann">@Builder</span>
+<span class="kw">public class</span> <span class="type">User</span> {
+    <span class="kw">private</span> <span class="type">String</span> role = <span class="str">"USER"</span>;
+}
+<span class="cm">// ⚠ builder().build() → role is null!</span></pre>
+      <div class="callout" style="border-left-color:#f472b6;">
+        <strong style="color:#f472b6;">Problem:</strong> The builder's internal fields start at their Java defaults (<code>null</code> for objects), ignoring the <code>= "USER"</code> initializer.
+      </div>
+    </div>
+    <div class="col-box">
+      <h3>With @Builder.Default</h3>
+<pre><span class="ann">@Builder</span>
+<span class="kw">public class</span> <span class="type">User</span> {
+    <span class="ann">@Builder.Default</span>
+    <span class="kw">private</span> <span class="type">String</span> role = <span class="str">"USER"</span>;
+}
+<span class="cm">// ✓ builder().build() → role is "USER"</span></pre>
+      <div class="callout green">
+        <strong>Result:</strong> <code>User.builder().build()</code> produces a user with <code>role = "USER"</code> — the field initializer is respected.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ 9 · toBuilder ════════════ -->
+<section id="toBuilder">
+  <div class="section-label pink"><span class="dot"></span> toBuilder</div>
+  <h2>@Builder(toBuilder = true) — Modified Copies</h2>
+  <p class="desc">Useful for creating a modified copy of an immutable object. The <code>toBuilder()</code> method returns a builder pre-populated with the current object's values.</p>
+
+<pre><span class="ann">@Builder</span>(toBuilder = <span class="num">true</span>)
+<span class="kw">public record</span> <span class="rec">User</span>(<span class="type">String</span> name, <span class="kw">int</span> age) {}</pre>
+
+  <div class="diagram">
+    <div class="diagram-title">toBuilder — Clone and Modify Pattern</div>
+    <svg viewBox="0 0 920 200" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+      <!-- Original object -->
+      <rect x="30" y="60" width="200" height="80" rx="10" fill="rgba(96,165,250,0.06)" stroke="#60a5fa" stroke-width="2"/>
+      <text x="130" y="90" text-anchor="middle" fill="#60a5fa" font-size="12" font-weight="700">user1</text>
+      <text x="130" y="110" text-anchor="middle" fill="#94a3b8" font-size="10">name="Alice", age=25</text>
+      <text x="130" y="128" text-anchor="middle" fill="#64748b" font-size="9">(immutable)</text>
+
+      <!-- Arrow to builder -->
+      <line x1="230" y1="100" x2="310" y2="100" stroke="#64748b" stroke-width="2" marker-end="url(#aG)"/>
+      <text x="270" y="90" text-anchor="middle" fill="#64748b" font-size="10">.toBuilder()</text>
+
+      <!-- Builder with modification -->
+      <rect x="320" y="45" width="250" height="110" rx="10" fill="rgba(212,168,67,0.04)" stroke="var(--lombok-green)" stroke-width="2"/>
+      <text x="445" y="72" text-anchor="middle" fill="var(--lombok-green)" font-size="12" font-weight="600">Builder (pre-filled)</text>
+      <text x="445" y="92" text-anchor="middle" fill="#94a3b8" font-size="10">name = "Alice"</text>
+      <text x="445" y="112" text-anchor="middle" fill="#fbbf24" font-size="10" font-weight="600">age = 26  ← modified!</text>
+      <text x="445" y="135" text-anchor="middle" fill="#64748b" font-size="9">.age(26).build()</text>
+
+      <!-- Arrow to result -->
+      <line x1="570" y1="100" x2="650" y2="100" stroke="#64748b" stroke-width="2" marker-end="url(#aG)"/>
+      <text x="610" y="90" text-anchor="middle" fill="#64748b" font-size="10">.build()</text>
+
+      <!-- New object -->
+      <rect x="660" y="60" width="230" height="80" rx="10" fill="rgba(52,211,153,0.06)" stroke="#34d399" stroke-width="2"/>
+      <text x="775" y="90" text-anchor="middle" fill="#34d399" font-size="12" font-weight="700">user2</text>
+      <text x="775" y="110" text-anchor="middle" fill="#94a3b8" font-size="10">name="Alice", age=26</text>
+      <text x="775" y="128" text-anchor="middle" fill="#64748b" font-size="9">(new immutable copy)</text>
+    </svg>
+  </div>
+
+<pre><span class="cm">// Usage</span>
+<span class="rec">User</span> user1 = <span class="rec">User</span>.<span class="fn">builder</span>().<span class="fn">name</span>(<span class="str">"Alice"</span>).<span class="fn">age</span>(<span class="num">25</span>).<span class="fn">build</span>();
+
+<span class="rec">User</span> user2 = user1.<span class="fn">toBuilder</span>()
+    .<span class="fn">age</span>(<span class="num">26</span>)
+    .<span class="fn">build</span>();
+<span class="cm">// user1 unchanged (immutable) — user2 has age=26</span></pre>
+</section>
+
+<!-- ════════════ 10 · WHEN TO USE A CLASS ════════════ -->
+<section id="when-class">
+  <div class="section-label purple"><span class="dot"></span> Design Decision</div>
+  <h2>When Should You Use a Class?</h2>
+  <p class="desc">Prefer a class when you need mutable state, setters, inheritance, significant behavior, or a typical JPA entity.</p>
+
+  <div class="cols-2">
+    <div class="col-box">
+      <h3>Class — Mutable with Behavior</h3>
+<pre><span class="kw">public class</span> <span class="type">Workflow</span> {
+    <span class="kw">private</span> <span class="type">WorkflowStatus</span> status;
+
+    <span class="kw">public void</span> <span class="fn">approve</span>() {
+        <span class="kw">this</span>.status = <span class="type">WorkflowStatus</span>.APPROVED;
+        <span class="cm">// trigger side effects, notifications...</span>
+    }
+
+    <span class="kw">public void</span> <span class="fn">reject</span>(<span class="type">String</span> reason) {
+        <span class="kw">this</span>.status = <span class="type">WorkflowStatus</span>.REJECTED;
+        <span class="cm">// log reason, notify...</span>
+    }
+
+    <span class="kw">public boolean</span> <span class="fn">isTerminal</span>() {
+        <span class="kw">return</span> status == <span class="type">WorkflowStatus</span>.APPROVED
+            || status == <span class="type">WorkflowStatus</span>.REJECTED;
+    }
+}</pre>
+    </div>
+    <div class="col-box">
+      <h3>Why Not a Record Here?</h3>
+      <ul>
+        <li><strong>Mutability:</strong> Status changes over time — <code>final</code> fields won't work</li>
+        <li><strong>Behavior:</strong> <code>approve()</code>, <code>reject()</code> encapsulate state transitions</li>
+        <li><strong>Side effects:</strong> Methods trigger notifications, logging</li>
+        <li><strong>Encapsulation:</strong> Internal state is hidden behind public methods</li>
+      </ul>
+
+      <h3>Summary: Use a Class When</h3>
+      <ul>
+        <li>You need mutable state / setters</li>
+        <li>The object contains substantial behavior</li>
+        <li>Inheritance hierarchy is required</li>
+        <li>It's a JPA entity (<code>@Entity</code>)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ 11 · DECISION GUIDE ════════════ -->
+<section id="guide">
+  <div class="section-label yellow"><span class="dot"></span> Quick Decision Guide</div>
+  <h2>Should I Use a Record or a Class?</h2>
+  <p class="desc">Use this guide to decide quickly based on your object's characteristics.</p>
+
+  <div class="diagram">
+    <div class="diagram-title">Decision Flowchart</div>
+    <svg viewBox="0 0 1000 520" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+      <!-- Start -->
+      <rect x="370" y="10" width="260" height="50" rx="25" fill="rgba(167,139,250,0.1)" stroke="var(--accent)" stroke-width="2"/>
+      <text x="500" y="40" text-anchor="middle" fill="var(--accent)" font-size="13" font-weight="600">What does your object do?</text>
+
+      <line x1="500" y1="60" x2="500" y2="95" stroke="#64748b" stroke-width="2" marker-end="url(#aG)"/>
+
+      <!-- Diamond 1 -->
+      <polygon points="500,100 660,155 500,210 340,155" fill="rgba(251,191,36,0.05)" stroke="#fbbf24" stroke-width="2"/>
+      <text x="500" y="148" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="600">Only carries</text>
+      <text x="500" y="166" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="600">immutable data?</text>
+
+      <!-- Yes → Record -->
+      <line x1="660" y1="155" x2="760" y2="155" stroke="#34d399" stroke-width="2" marker-end="url(#aGr)"/>
+      <text x="710" y="145" fill="#34d399" font-size="10" font-weight="600">Yes</text>
+
+      <!-- Record result box -->
+      <rect x="770" y="100" width="210" height="110" rx="10" fill="rgba(96,165,250,0.08)" stroke="#60a5fa" stroke-width="2"/>
+      <text x="875" y="130" text-anchor="middle" fill="#60a5fa" font-size="14" font-weight="700">Use RECORD</text>
+      <text x="875" y="155" text-anchor="middle" fill="#94a3b8" font-size="10">+ @Builder if many</text>
+      <text x="875" y="172" text-anchor="middle" fill="#94a3b8" font-size="10">optional parameters</text>
+      <text x="875" y="195" text-anchor="middle" fill="#64748b" font-size="9">DTOs · API responses · events</text>
+
+      <!-- No path -->
+      <line x1="500" y1="210" x2="500" y2="245" stroke="#64748b" stroke-width="2" marker-end="url(#aG)"/>
+      <text x="518" y="232" fill="#64748b" font-size="10" font-weight="600">No</text>
+
+      <!-- Diamond 2 -->
+      <polygon points="500,250 660,305 500,360 340,305" fill="rgba(52,211,153,0.05)" stroke="#34d399" stroke-width="2"/>
+      <text x="500" y="296" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600">Needs setters /</text>
+      <text x="500" y="314" text-anchor="middle" fill="#34d399" font-size="11" font-weight="600">mutable state?</text>
+
+      <!-- Yes → Class -->
+      <line x1="660" y1="305" x2="760" y2="305" stroke="#c084fc" stroke-width="2" marker-end="url(#aPu)"/>
+      <text x="710" y="295" fill="#c084fc" font-size="10" font-weight="600">Yes</text>
+
+      <rect x="770" y="260" width="210" height="90" rx="10" fill="rgba(167,139,250,0.08)" stroke="var(--accent)" stroke-width="2"/>
+      <text x="875" y="290" text-anchor="middle" fill="var(--accent)" font-size="14" font-weight="700">Use CLASS</text>
+      <text x="875" y="315" text-anchor="middle" fill="#94a3b8" font-size="10">mutable objects, JPA entities</text>
+      <text x="875" y="335" text-anchor="middle" fill="#64748b" font-size="9">workflows, state machines</text>
+
+      <!-- No → Diamond 3 -->
+      <line x1="500" y1="360" x2="500" y2="395" stroke="#64748b" stroke-width="2" marker-end="url(#aG)"/>
+      <text x="518" y="382" fill="#64748b" font-size="10" font-weight="600">No</text>
+
+      <!-- Diamond 3 -->
+      <polygon points="500,400 660,440 500,480 340,440" fill="rgba(244,114,182,0.05)" stroke="#f472b6" stroke-width="2"/>
+      <text x="500" y="434" text-anchor="middle" fill="#f472b6" font-size="11" font-weight="600">Contains substantial</text>
+      <text x="500" y="452" text-anchor="middle" fill="#f472b6" font-size="11" font-weight="600">behavior / inheritance?</text>
+
+      <!-- Yes → Class -->
+      <line x1="660" y1="440" x2="760" y2="400" stroke="#c084fc" stroke-width="2" marker-end="url(#aPu)"/>
+      <text x="720" y="415" fill="#c084fc" font-size="10" font-weight="600">Yes</text>
+      <line x1="870" y1="350" x2="870" y2="370" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3 2" opacity="0.4"/>
+
+      <!-- No → Record still fine -->
+      <line x1="340" y1="440" x2="150" y2="440" stroke="#60a5fa" stroke-width="2" marker-end="url(#aBl)"/>
+      <text x="245" y="430" fill="#60a5fa" font-size="10" font-weight="600">No</text>
+
+      <rect x="10" y="400" width="140" height="80" rx="10" fill="rgba(96,165,250,0.08)" stroke="#60a5fa" stroke-width="2"/>
+      <text x="80" y="430" text-anchor="middle" fill="#60a5fa" font-size="13" font-weight="700">RECORD</text>
+      <text x="80" y="450" text-anchor="middle" fill="#94a3b8" font-size="9">still a good fit</text>
+      <text x="80" y="468" text-anchor="middle" fill="#64748b" font-size="9">even without @Builder</text>
+
+      <defs>
+        <marker id="aGr" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#34d399"/></marker>
+        <marker id="aPu" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="var(--accent)"/></marker>
+        <marker id="aBl" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#60a5fa"/></marker>
+      </defs>
+    </svg>
+  </div>
+
+  <h3>Quick Reference Table</h3>
+  <table>
+    <thead><tr><th>If your object...</th><th>Prefer</th></tr></thead>
+    <tbody>
+      <tr><td>Only carries immutable data</td><td><code>record</code></td></tr>
+      <tr><td>Has many optional construction parameters</td><td><code>record + @Builder</code></td></tr>
+      <tr><td>Needs setters / mutable state</td><td><code>class</code></td></tr>
+      <tr><td>Contains substantial behavior</td><td><code>class</code></td></tr>
+      <tr><td>Is a JPA entity</td><td><code>class</code></td></tr>
+      <tr><td>Is a DTO / API response</td><td><code>record (often + @Builder)</code></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ════════════ 12 · MENTAL MODEL ════════════ -->
+<section id="mental">
+  <div class="section-label green"><span class="dot"></span> Mental Model</div>
+  <h2>Putting It All Together</h2>
+  <p class="desc">Each concept serves a distinct purpose. Here's how they fit together.</p>
+
+  <div class="diagram">
+    <div class="diagram-title">Mental Model — Record + Builder + Compact Constructor</div>
+    <svg viewBox="0 0 1000 280" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono, monospace">
+      <!-- record -->
+      <rect x="40" y="30" width="280" height="100" rx="12" fill="rgba(96,165,250,0.06)" stroke="#60a5fa" stroke-width="2"/>
+      <text x="180" y="60" text-anchor="middle" fill="#60a5fa" font-size="16" font-weight="700">record</text>
+      <text x="180" y="85" text-anchor="middle" fill="#94a3b8" font-size="12">WHAT data the object</text>
+      <text x="180" y="105" text-anchor="middle" fill="#94a3b8" font-size="12">contains (immutable)</text>
+
+      <!-- @Builder -->
+      <rect x="360" y="30" width="280" height="100" rx="12" fill="rgba(212,168,67,0.06)" stroke="var(--lombok-green)" stroke-width="2"/>
+      <text x="500" y="60" text-anchor="middle" fill="var(--lombok-green)" font-size="16" font-weight="700">@Builder</text>
+      <text x="500" y="85" text-anchor="middle" fill="#94a3b8" font-size="12">HOW callers conveniently</text>
+      <text x="500" y="105" text-anchor="middle" fill="#94a3b8" font-size="12">create it (fluent API)</text>
+
+      <!-- Compact constructor -->
+      <rect x="680" y="30" width="280" height="100" rx="12" fill="rgba(52,211,153,0.06)" stroke="#34d399" stroke-width="2"/>
+      <text x="820" y="60" text-anchor="middle" fill="#34d399" font-size="14" font-weight="700">compact constructor</text>
+      <text x="820" y="85" text-anchor="middle" fill="#94a3b8" font-size="12">VALIDATION &amp;</text>
+      <text x="820" y="105" text-anchor="middle" fill="#94a3b8" font-size="12">NORMALIZATION</text>
+
+      <!-- Connecting to example -->
+      <line x1="180" y1="130" x2="180" y2="170" stroke="#60a5fa" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <line x1="500" y1="130" x2="500" y2="170" stroke="var(--lombok-green)" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <line x1="820" y1="130" x2="820" y2="170" stroke="#34d399" stroke-width="1.5" stroke-dasharray="4 3"/>
+
+      <!-- Example object -->
+      <rect x="100" y="175" width="800" height="90" rx="12" fill="rgba(167,139,250,0.04)" stroke="var(--accent)" stroke-width="1.5"/>
+
+      <text x="500" y="205" text-anchor="middle" fill="var(--accent)" font-size="13" font-weight="600">AuditPublishRequest — the complete picture</text>
+
+      <text x="180" y="230" text-anchor="middle" fill="#60a5fa" font-size="10">immutable fields: eventKind,</text>
+      <text x="180" y="248" text-anchor="middle" fill="#60a5fa" font-size="10">action, entity, changes...</text>
+
+      <text x="500" y="230" text-anchor="middle" fill="var(--lombok-green)" font-size="10">AuditPublishRequest.builder()</text>
+      <text x="500" y="248" text-anchor="middle" fill="var(--lombok-green)" font-size="10">.eventKind("...").build()</text>
+
+      <text x="820" y="230" text-anchor="middle" fill="#34d399" font-size="10">null changes → List.of()</text>
+      <text x="820" y="248" text-anchor="middle" fill="#34d399" font-size="10">avoids NPE for callers</text>
+    </svg>
+  </div>
+
+  <div class="cols-3" style="margin-top:1rem">
+    <div class="col-box" style="border-color:rgba(96,165,250,0.3)">
+      <h3 style="color:var(--record-blue)">record</h3>
+      <p>Defines <strong>what data</strong> the object contains. All components are <code>final</code>. Auto-generates constructor, accessors, <code>equals</code>, <code>hashCode</code>, <code>toString</code>.</p>
+    </div>
+    <div class="col-box" style="border-color:rgba(212,168,67,0.3)">
+      <h3 style="color:var(--lombok-green)">@Builder</h3>
+      <p>Defines <strong>how callers create</strong> the object. Fluent, readable API. Avoids telescoping constructors. Works on both classes and records.</p>
+    </div>
+    <div class="col-box" style="border-color:rgba(52,211,153,0.3)">
+      <h3 style="color:var(--accent-3)">Compact Constructor</h3>
+      <p>Handles <strong>validation and normalization</strong> during construction. Runs before the object is created. Perfect for null-safe defaults like <code>List.of()</code>.</p>
+    </div>
+  </div>
+
+  <div class="callout gold" style="margin-top:1.5rem">
+    <strong>For your AuditPublishRequest:</strong> The record is a good fit because it is an immutable request/data object. A class would also work, but would add boilerplate unless you need class-specific behavior or mutability.
+  </div>
+
+  <hr class="sep">
+
+  <h3>List.of() — Immutable Empty List</h3>
+  <p>The compact constructor uses <code>List.of()</code> to return an immutable empty list when <code>changes</code> is null:</p>
+<pre><span class="cm">// null → List.of() → []</span>
+changes = changes == <span class="kw">null</span> ? <span class="type">List</span>.<span class="fn">of</span>() : changes;
+
+<span class="cm">// List.of() returns an IMMUTABLE list</span>
+<span class="cm">// callers cannot add/remove elements — safe by design</span></pre>
+</section>
+
+<!-- ════════════ FOOTER ════════════ -->
+<footer>
+  <p>Java Records &amp; Lombok @Builder Cheat Sheet · <span>Java 16+ Compatible</span> · MiMo</p>
+</footer>
+
+</div><!-- page -->
+
+</body>
+</html>

@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ER Diagram &amp; JPA Mapping — Complete Cheat Sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Space+Grotesk:wght@400;600;700&family=Instrument+Serif&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0e1a;--surface:#111827;--surface-2:#161d2e;--border:#1e293b;
+    --accent:#38bdf8;--accent-2:#818cf8;--accent-3:#34d399;--accent-4:#f472b6;--accent-5:#fbbf24;
+    --text-primary:#e2e8f0;--text-muted:#64748b;--code-bg:#0d1321;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--text-primary);font-family:'Space Grotesk',sans-serif;line-height:1.65;min-height:100vh;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 10% 5%,rgba(56,189,248,.06) 0%,transparent 50%),radial-gradient(ellipse at 90% 90%,rgba(129,140,248,.04) 0%,transparent 50%);pointer-events:none;z-index:0}
+  .page{max-width:1200px;margin:0 auto;padding:2rem 2rem 5rem;position:relative;z-index:1}
+
+  header{text-align:center;margin-bottom:2.5rem;padding-bottom:2rem;border-bottom:1px solid var(--border);animation:fd .6s ease forwards}
+  @keyframes fd{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+  header h1{font-family:'Instrument Serif',serif;font-size:clamp(2.2rem,5vw,3.6rem);font-weight:400;background:linear-gradient(135deg,var(--accent-4),var(--accent-2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.4rem}
+  header p{color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:.82rem}
+  .tags{display:flex;justify-content:center;gap:.5rem;margin-top:1rem;flex-wrap:wrap}
+  .tag{padding:.2rem .7rem;border-radius:999px;font-size:.68rem;font-family:'JetBrains Mono',monospace;font-weight:600;text-transform:uppercase;letter-spacing:.08em}
+  .tag-er{background:rgba(244,114,182,.15);color:#f472b6;border:1px solid rgba(244,114,182,.3)}
+  .tag-jpa{background:rgba(56,189,248,.15);color:#38bdf8;border:1px solid rgba(56,189,248,.3)}
+  .tag-db{background:rgba(52,211,153,.15);color:#34d399;border:1px solid rgba(52,211,153,.3)}
+  .tag-norm{background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3)}
+
+  .toc{display:flex;flex-wrap:wrap;justify-content:center;gap:.35rem;margin-bottom:3rem;animation:fu .5s ease forwards;animation-delay:.15s;opacity:0}
+  .toc a{font-family:'JetBrains Mono',monospace;font-size:.66rem;color:var(--text-muted);text-decoration:none;padding:.25rem .6rem;border:1px solid var(--border);border-radius:6px;transition:all .2s}
+  .toc a:hover{color:var(--accent);border-color:var(--accent);background:rgba(56,189,248,.05)}
+
+  section{margin-bottom:3rem;opacity:0;animation:fu .5s ease forwards}
+  section:nth-child(2){animation-delay:.05s}section:nth-child(3){animation-delay:.1s}section:nth-child(4){animation-delay:.15s}
+  section:nth-child(5){animation-delay:.2s}section:nth-child(6){animation-delay:.25s}section:nth-child(7){animation-delay:.3s}
+  section:nth-child(8){animation-delay:.35s}section:nth-child(9){animation-delay:.4s}section:nth-child(10){animation-delay:.45s}
+  section:nth-child(11){animation-delay:.5s}section:nth-child(12){animation-delay:.55s}section:nth-child(13){animation-delay:.6s}
+  section:nth-child(14){animation-delay:.65s}section:nth-child(15){animation-delay:.7s}section:nth-child(16){animation-delay:.75s}
+  section:nth-child(17){animation-delay:.8s}section:nth-child(18){animation-delay:.85s}
+  @keyframes fu{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+  .sl{font-family:'JetBrains Mono',monospace;font-size:.62rem;text-transform:uppercase;letter-spacing:.14em;color:var(--accent);margin-bottom:.3rem;display:flex;align-items:center;gap:.5rem}
+  .sl .d{width:6px;height:6px;border-radius:50%;background:currentColor}
+  .sl.green{color:var(--accent-3)}.sl.purple{color:var(--accent-2)}.sl.pink{color:var(--accent-4)}.sl.yellow{color:var(--accent-5)}
+
+  h2{font-family:'Instrument Serif',serif;font-size:clamp(1.4rem,3vw,2rem);font-weight:400;margin-bottom:.8rem}
+  h3{font-size:.92rem;font-weight:600;margin:1.3rem 0 .5rem;color:var(--accent-5)}
+  h3:first-of-type{margin-top:.5rem}
+  .desc{font-size:.88rem;color:var(--text-muted);margin-bottom:1rem;max-width:80ch}
+  p,li{font-size:.85rem;color:var(--text-muted);line-height:1.7}
+  ul{list-style:none;padding:0}
+  ul li{position:relative;padding-left:1.2rem;margin-bottom:.3rem}
+  ul li::before{content:'›';position:absolute;left:0;color:var(--accent);font-weight:700}
+  code{font-family:'JetBrains Mono',monospace;font-size:.78rem;background:var(--code-bg);padding:.12rem .4rem;border-radius:4px;color:var(--accent);border:1px solid var(--border)}
+  pre{background:var(--code-bg);border:1px solid var(--border);border-radius:8px;padding:1.1rem 1.3rem;overflow-x:auto;margin:.6rem 0;font-family:'JetBrains Mono',monospace;font-size:.74rem;line-height:1.85;color:#94a3b8}
+  pre .kw{color:#c084fc}pre .ann{color:#fbbf24}pre .str{color:#34d399}pre .cm{color:#475569}pre .type{color:#38bdf8}pre .fn{color:#f472b6}pre .num{color:#fb923c}pre .pk{color:#f472b6}pre .fk{color:#fbbf24}
+  table{width:100%;border-collapse:collapse;margin:.6rem 0;font-size:.8rem}
+  th{text-align:left;padding:.5rem .65rem;border-bottom:2px solid var(--border);color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:.66rem;text-transform:uppercase;letter-spacing:.08em}
+  td{padding:.4rem .65rem;border-bottom:1px solid rgba(30,41,59,.5);color:var(--text-muted);font-size:.8rem}
+  tr:hover td{color:var(--text-primary);background:rgba(56,189,248,.03)}
+
+  .cols-2{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem}
+  .cols-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1.2rem}
+  .col-box{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1.4rem;transition:border-color .3s}
+  .col-box:hover{border-color:rgba(56,189,248,.25)}
+
+  .diagram{background:var(--code-bg);border:1px solid var(--border);border-radius:12px;padding:2rem 1.5rem;margin:1rem 0 1.2rem;overflow-x:auto}
+  .diagram-title{font-family:'JetBrains Mono',monospace;font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin-bottom:1.2rem;text-align:center}
+  .diagram svg{display:block;margin:0 auto;width:100%;max-height:600px}
+
+  .badge{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:.6rem;padding:.15rem .5rem;border-radius:4px;font-weight:600;letter-spacing:.05em;margin-left:.4rem}
+  .badge-new{background:rgba(52,211,153,.15);color:var(--accent-3);border:1px solid rgba(52,211,153,.3)}
+  .badge-warn{background:rgba(251,191,36,.15);color:var(--accent-5);border:1px solid rgba(251,191,36,.3)}
+
+  hr.sep{border:none;border-top:1px solid var(--border);margin:2.5rem 0;opacity:.5}
+
+  .tip{background:rgba(52,211,153,.06);border-left:3px solid var(--accent-3);padding:.7rem 1rem;border-radius:0 8px 8px 0;margin:.8rem 0;font-size:.82rem}
+  .tip strong{color:var(--accent-3)}
+
+  .warn{background:rgba(251,191,36,.06);border-left:3px solid var(--accent-5);padding:.7rem 1rem;border-radius:0 8px 8px 0;margin:.8rem 0;font-size:.82rem}
+  .warn strong{color:var(--accent-5)}
+
+  footer{text-align:center;margin-top:3rem;padding-top:2rem;border-top:1px solid var(--border);color:var(--text-muted);font-size:.72rem;font-family:'JetBrains Mono',monospace}
+  footer span{color:var(--accent)}
+
+  @media(max-width:860px){.cols-2,.cols-3{grid-template-columns:1fr}.page{padding:1rem 1rem 3rem}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ════════ HEADER ════════ -->
+<header>
+  <h1>ER Diagram &amp; JPA Mapping</h1>
+  <p>entities · relationships · keys · normalization · JPA owning/inverse · constraints · worked examples</p>
+  <div class="tags">
+    <span class="tag tag-er">ER Modeling</span>
+    <span class="tag tag-jpa">JPA / Hibernate</span>
+    <span class="tag tag-db">Database Design</span>
+    <span class="tag tag-norm">Normalization</span>
+  </div>
+</header>
+
+<nav class="toc">
+  <a href="#overview">Overview</a><a href="#worked-er">Worked ERD</a><a href="#entities-diagram">Entities</a><a href="#relationships-diagram">Relationships</a>
+  <a href="#jpa-owning">JPA Owning/Inverse</a><a href="#jpa-code">JPA Code</a><a href="#keys">Keys</a>
+  <a href="#identifying">Identifying vs Non-Identifying</a><a href="#strong-weak">Strong vs Weak</a>
+  <a href="#relationship-attrs">Relationship Attributes</a><a href="#recursive">Self-Referencing</a>
+  <a href="#ternary">Ternary/N-ary</a><a href="#supertype">Supertype/Subtype</a>
+  <a href="#nullability">Nullability</a><a href="#erd-to-db">ERD → DB</a>
+  <a href="#normalization">Normalization</a><a href="#constraints">Constraints</a>
+  <a href="#delete-actions">Delete/Update Actions</a><a href="#reading-erd">Reading an ERD</a>
+  <a href="#mistakes">Common Mistakes</a><a href="#memory-rules">Memory Rules</a>
+</nav>
+
+<!-- ════════ 1 · OVERVIEW ════════ -->
+<section id="overview">
+  <div class="sl pink"><span class="d"></span> Core Concept</div>
+  <h2>What is an ER Diagram?</h2>
+  <p class="desc">An <strong>Entity-Relationship Diagram</strong> describes business entities, their attributes, and the relationships between them. It is the blueprint for your database schema. The core mental model: <em>ERD describes business relationships; PKs, FKs, and constraints implement them; JPA maps that schema into Java objects.</em></p>
+
+  <div class="cols-3">
+    <div class="col-box">
+      <h3>Entity</h3>
+      <p>A real-world object or concept — becomes a <strong>table</strong> in the database and an <strong><code>@Entity</code></strong> class in JPA.</p>
+      <p style="margin-top:.4rem;font-size:.78rem;color:var(--accent)">Examples: PATIENT, DOCTOR, APPOINTMENT</p>
+    </div>
+    <div class="col-box">
+      <h3>Attribute</h3>
+      <p>A property of an entity — becomes a <strong>column</strong> in the table.</p>
+      <p style="margin-top:.4rem;font-size:.78rem;color:var(--accent)">Examples: name, email, insurance_id</p>
+    </div>
+    <div class="col-box">
+      <h3>Relationship</h3>
+      <p>An association between entities — implemented via <strong>foreign keys</strong> or <strong>junction tables</strong>.</p>
+      <p style="margin-top:.4rem;font-size:.78rem;color:var(--accent)">Examples: books, handles, assigned_to</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 2 · WORKED EXAMPLE — YOUR ERD ════════ -->
+<section id="worked-er">
+  <div class="sl purple"><span class="d"></span> Worked Example</div>
+  <h2>Your ER Diagram — Entities &amp; Relationships</h2>
+  <p class="desc">The following diagram models a healthcare system with patients, doctors, appointments, departments, and insurance. Each entity and relationship is annotated with its foreign key location.</p>
+
+  <div class="diagram">
+    <div class="diagram-title">Healthcare System — Entity Relationship Diagram</div>
+    <svg viewBox="0 0 1060 620" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono,monospace">
+      <!-- INSURANCE entity -->
+      <rect x="30" y="30" width="220" height="130" rx="12" fill="#0d1321" stroke="#f472b6" stroke-width="2.5"/>
+      <rect x="30" y="30" width="220" height="38" rx="12" fill="rgba(244,114,182,.1)"/>
+      <text x="140" y="55" text-anchor="middle" fill="#f472b6" font-size="14" font-weight="700">INSURANCE</text>
+      <text x="50" y="92" fill="#f472b6" font-size="11" font-weight="600">🔑 id</text>
+      <text x="50" y="115" fill="#94a3b8" font-size="11">policy_number</text>
+      <text x="50" y="138" fill="#94a3b8" font-size="11">provider</text>
+      <text x="50" y="155" fill="#94a3b8" font-size="11">coverage_type</text>
+
+      <!-- PATIENT entity -->
+      <rect x="350" y="30" width="250" height="210" rx="12" fill="#0d1321" stroke="#38bdf8" stroke-width="2.5"/>
+      <rect x="350" y="30" width="250" height="38" rx="12" fill="rgba(56,189,248,.1)"/>
+      <text x="475" y="55" text-anchor="middle" fill="#38bdf8" font-size="14" font-weight="700">PATIENT</text>
+      <text x="370" y="92" fill="#f472b6" font-size="11" font-weight="600">🔑 id</text>
+      <text x="370" y="115" fill="#94a3b8" font-size="11">name</text>
+      <text x="370" y="138" fill="#94a3b8" font-size="11">email</text>
+      <text x="370" y="161" fill="#94a3b8" font-size="11">phone</text>
+      <text x="370" y="184" fill="#94a3b8" font-size="11">date_of_birth</text>
+      <text x="370" y="207" fill="#fbbf24" font-size="11" font-weight="600">🔗 insurance_id → INSURANCE</text>
+      <text x="370" y="230" fill="#94a3b8" font-size="10" font-style="italic">UNIQUE (1:1)</text>
+
+      <!-- DEPARTMENT entity -->
+      <rect x="750" y="30" width="260" height="160" rx="12" fill="#0d1321" stroke="#34d399" stroke-width="2.5"/>
+      <rect x="750" y="30" width="260" height="38" rx="12" fill="rgba(52,211,153,.1)"/>
+      <text x="880" y="55" text-anchor="middle" fill="#34d399" font-size="14" font-weight="700">DEPARTMENT</text>
+      <text x="770" y="92" fill="#f472b6" font-size="11" font-weight="600">🔑 id</text>
+      <text x="770" y="115" fill="#94a3b8" font-size="11">name</text>
+      <text x="770" y="138" fill="#fbbf24" font-size="11" font-weight="600">🔗 head_doctor_id → DOCTOR</text>
+      <text x="770" y="158" fill="#94a3b8" font-size="10" font-style="italic">nullable (0..1 head)</text>
+
+      <!-- DOCTOR entity -->
+      <rect x="750" y="240" width="260" height="150" rx="12" fill="#0d1321" stroke="#fbbf24" stroke-width="2.5"/>
+      <rect x="750" y="240" width="260" height="38" rx="12" fill="rgba(251,191,36,.1)"/>
+      <text x="880" y="265" text-anchor="middle" fill="#fbbf24" font-size="14" font-weight="700">DOCTOR</text>
+      <text x="770" y="302" fill="#f472b6" font-size="11" font-weight="600">🔑 id</text>
+      <text x="770" y="325" fill="#94a3b8" font-size="11">name</text>
+      <text x="770" y="348" fill="#94a3b8" font-size="11">specialization</text>
+      <text x="770" y="371" fill="#94a3b8" font-size="11">email</text>
+
+      <!-- DOCTOR_DEPARTMENT junction -->
+      <rect x="520" y="430" width="280" height="100" rx="12" fill="#0d1321" stroke="#818cf8" stroke-width="2.5" stroke-dasharray="6 3"/>
+      <rect x="520" y="430" width="280" height="35" rx="12" fill="rgba(129,140,248,.08)"/>
+      <text x="660" y="453" text-anchor="middle" fill="#818cf8" font-size="12" font-weight="700">DOCTOR_DEPARTMENT</text>
+      <text x="540" y="485" fill="#fbbf24" font-size="11" font-weight="600">🔗 doctor_id → DOCTOR</text>
+      <text x="540" y="508" fill="#34d399" font-size="11" font-weight="600">🔗 department_id → DEPARTMENT</text>
+      <text x="540" y="525" fill="#94a3b8" font-size="9" font-style="italic">Composite PK: (doctor_id, department_id)</text>
+
+      <!-- APPOINTMENT entity -->
+      <rect x="30" y="330" width="280" height="200" rx="12" fill="#0d1321" stroke="#fb923c" stroke-width="2.5"/>
+      <rect x="30" y="330" width="280" height="38" rx="12" fill="rgba(251,146,60,.1)"/>
+      <text x="170" y="355" text-anchor="middle" fill="#fb923c" font-size="14" font-weight="700">APPOINTMENT</text>
+      <text x="50" y="392" fill="#f472b6" font-size="11" font-weight="600">🔑 id</text>
+      <text x="50" y="415" fill="#94a3b8" font-size="11">appointment_date</text>
+      <text x="50" y="438" fill="#94a3b8" font-size="11">status</text>
+      <text x="50" y="461" fill="#94a3b8" font-size="11">notes</text>
+      <text x="50" y="484" fill="#fbbf24" font-size="11" font-weight="600">🔗 patient_id → PATIENT</text>
+      <text x="50" y="507" fill="#fbbf24" font-size="11" font-weight="600">🔗 doctor_id → DOCTOR</text>
+      <text x="50" y="525" fill="#94a3b8" font-size="10" font-style="italic">NOT NULL (mandatory)</text>
+
+      <!-- RELATIONSHIP LINES -->
+      <!-- Patient → Insurance (1:1) -->
+      <line x1="250" y1="95" x2="350" y2="135" stroke="#f472b6" stroke-width="2" marker-end="url(#aPink)"/>
+      <text x="275" y="100" fill="#f472b6" font-size="10" font-weight="600">1:1</text>
+      <text x="265" y="115" fill="#64748b" font-size="9">has</text>
+
+      <!-- Patient → Appointment (1:N) -->
+      <line x1="390" y1="240" x2="250" y2="330" stroke="#38bdf8" stroke-width="2" marker-end="url(#aBlue)"/>
+      <text x="290" y="270" fill="#38bdf8" font-size="10" font-weight="600">1:N</text>
+      <text x="285" y="285" fill="#64748b" font-size="9">books</text>
+
+      <!-- Doctor → Appointment (1:N) -->
+      <line x1="750" y1="310" x2="310" y2="400" stroke="#fbbf24" stroke-width="2" marker-end="url(#aYellow)"/>
+      <text x="540" y="335" fill="#fbbf24" font-size="10" font-weight="600">1:N</text>
+      <text x="535" y="350" fill="#64748b" font-size="9">handles</text>
+
+      <!-- Doctor ↔ Department (M:N via junction) -->
+      <line x1="780" y1="390" x2="700" y2="430" stroke="#818cf8" stroke-width="2" marker-end="url(#aPurple)"/>
+      <line x1="880" y1="190" x2="720" y2="430" stroke="#818cf8" stroke-width="2" marker-end="url(#aPurple)"/>
+      <text x="760" y="310" fill="#818cf8" font-size="10" font-weight="600">M:N</text>
+      <text x="755" y="325" fill="#64748b" font-size="9">assigned_to</text>
+
+      <!-- Department → Head Doctor (N:1) -->
+      <line x1="880" y1="190" x2="880" y2="240" stroke="#34d399" stroke-width="2" marker-end="url(#aGreen)"/>
+      <text x="895" y="220" fill="#34d399" font-size="10" font-weight="600">N:1</text>
+      <text x="895" y="233" fill="#64748b" font-size="9">head_of</text>
+
+      <defs>
+        <marker id="aPink" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#f472b6"/></marker>
+        <marker id="aBlue" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#38bdf8"/></marker>
+        <marker id="aYellow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#fbbf24"/></marker>
+        <marker id="aPurple" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#818cf8"/></marker>
+        <marker id="aGreen" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#34d399"/></marker>
+      </defs>
+    </svg>
+  </div>
+
+  <table>
+    <thead><tr><th>Relationship</th><th>Type</th><th>FK Location</th><th>Implementation</th></tr></thead>
+    <tbody>
+      <tr><td>Patient → Insurance</td><td>1:1 optional</td><td><code>patient.insurance_id</code></td><td>FK + UNIQUE</td></tr>
+      <tr><td>Patient → Appointment</td><td>1:N</td><td><code>appointment.patient_id</code></td><td>FK on N side</td></tr>
+      <tr><td>Doctor → Appointment</td><td>1:N</td><td><code>appointment.doctor_id</code></td><td>FK on N side</td></tr>
+      <tr><td>Doctor ↔ Department</td><td>M:N</td><td><code>doctor_department</code></td><td>Junction table</td></tr>
+      <tr><td>Department → Head Doctor</td><td>N:1 optional</td><td><code>department.head_doctor_id</code></td><td>FK, nullable</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ════════ 3 · ENTITY DETAIL DIAGRAM ════════ -->
+<section id="entities-diagram">
+  <div class="sl green"><span class="d"></span> Entity Anatomy</div>
+  <h2>Entity Breakdown</h2>
+
+  <div class="diagram">
+    <div class="diagram-title">Entity Structure — Attributes &amp; Key Markers</div>
+    <svg viewBox="0 0 1060 280" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono,monospace">
+      <!-- Patient entity detail -->
+      <rect x="20" y="20" width="320" height="240" rx="12" fill="#0d1321" stroke="#38bdf8" stroke-width="2"/>
+      <rect x="20" y="20" width="320" height="40" rx="12" fill="rgba(56,189,248,.1)"/>
+      <text x="180" y="46" text-anchor="middle" fill="#38bdf8" font-size="15" font-weight="700">PATIENT</text>
+      <text x="40" y="85" fill="#f472b6" font-size="12" font-weight="600">🔑 PK: id</text>
+      <text x="40" y="110" fill="#94a3b8" font-size="11">name ........ VARCHAR(100) NOT NULL</text>
+      <text x="40" y="133" fill="#94a3b8" font-size="11">email ....... VARCHAR(255) UNIQUE</text>
+      <text x="40" y="156" fill="#94a3b8" font-size="11">phone ....... VARCHAR(20)</text>
+      <text x="40" y="179" fill="#94a3b8" font-size="11">date_of_birth DATE</text>
+      <text x="40" y="208" fill="#fbbf24" font-size="12" font-weight="600">🔗 FK: insurance_id → INSURANCE.id</text>
+      <text x="40" y="232" fill="#64748b" font-size="10">UNIQUE constraint (enforces 1:1)</text>
+      <text x="40" y="252" fill="#64748b" font-size="10">Can be NULL (optional relationship)</text>
+
+      <!-- Appointment entity detail -->
+      <rect x="370" y="20" width="320" height="240" rx="12" fill="#0d1321" stroke="#fb923c" stroke-width="2"/>
+      <rect x="370" y="20" width="320" height="40" rx="12" fill="rgba(251,146,60,.1)"/>
+      <text x="530" y="46" text-anchor="middle" fill="#fb923c" font-size="15" font-weight="700">APPOINTMENT</text>
+      <text x="390" y="85" fill="#f472b6" font-size="12" font-weight="600">🔑 PK: id</text>
+      <text x="390" y="110" fill="#94a3b8" font-size="11">appointment_date TIMESTAMP NOT NULL</text>
+      <text x="390" y="133" fill="#94a3b8" font-size="11">status ........ VARCHAR(20)</text>
+      <text x="390" y="156" fill="#94a3b8" font-size="11">notes ......... TEXT</text>
+      <text x="390" y="185" fill="#fbbf24" font-size="12" font-weight="600">🔗 FK: patient_id → PATIENT.id</text>
+      <text x="390" y="205" fill="#fbbf24" font-size="12" font-weight="600">🔗 FK: doctor_id → DOCTOR.id</text>
+      <text x="390" y="230" fill="#64748b" font-size="10">Both FKs NOT NULL (mandatory)</text>
+      <text x="390" y="252" fill="#64748b" font-size="10">Appointment depends on Patient &amp; Doctor</text>
+
+      <!-- Junction table detail -->
+      <rect x="720" y="20" width="320" height="240" rx="12" fill="#0d1321" stroke="#818cf8" stroke-width="2" stroke-dasharray="6 3"/>
+      <rect x="720" y="20" width="320" height="40" rx="12" fill="rgba(129,140,248,.08)"/>
+      <text x="880" y="46" text-anchor="middle" fill="#818cf8" font-size="14" font-weight="700">DOCTOR_DEPARTMENT</text>
+      <text x="740" y="85" fill="#818cf8" font-size="11" font-weight="600">Associative / Junction Table</text>
+      <text x="740" y="120" fill="#fbbf24" font-size="12" font-weight="600">🔗 FK: doctor_id → DOCTOR.id</text>
+      <text x="740" y="150" fill="#34d399" font-size="12" font-weight="600">🔗 FK: department_id → DEPARTMENT.id</text>
+      <text x="740" y="185" fill="#f472b6" font-size="12" font-weight="600">🔑 Composite PK:</text>
+      <text x="740" y="208" fill="#f472b6" font-size="11">(doctor_id, department_id)</text>
+      <text x="740" y="238" fill="#64748b" font-size="10">Prevents duplicate doctor-department pairs</text>
+      <text x="740" y="255" fill="#64748b" font-size="10">No separate surrogate PK needed</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ════════ 4 · RELATIONSHIP CARDINALITY ════════ -->
+<section id="relationships-diagram">
+  <div class="sl purple"><span class="d"></span> Relationship Cardinality</div>
+  <h2>Reading Relationship Cardinality</h2>
+
+  <div class="diagram">
+    <div class="diagram-title">Cardinality Symbols &amp; Their Meanings</div>
+    <svg viewBox="0 0 1000 320" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono,monospace">
+      <!-- 1:1 -->
+      <rect x="20" y="20" width="200" height="130" rx="10" fill="#0d1321" stroke="#f472b6" stroke-width="2"/>
+      <text x="120" y="48" text-anchor="middle" fill="#f472b6" font-size="13" font-weight="600">1:1 One-to-One</text>
+      <line x1="50" y1="80" x2="190" y2="80" stroke="#f472b6" stroke-width="2"/>
+      <text x="50" y="105" fill="#f472b6" font-size="14" font-weight="700">1</text>
+      <text x="180" y="105" fill="#f472b6" font-size="14" font-weight="700">1</text>
+      <text x="120" y="135" text-anchor="middle" fill="#94a3b8" font-size="10">PATIENT ↔ INSURANCE</text>
+
+      <!-- 1:N -->
+      <rect x="260" y="20" width="200" height="130" rx="10" fill="#0d1321" stroke="#38bdf8" stroke-width="2"/>
+      <text x="360" y="48" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="600">1:N One-to-Many</text>
+      <line x1="290" y1="80" x2="430" y2="80" stroke="#38bdf8" stroke-width="2"/>
+      <text x="290" y="105" fill="#38bdf8" font-size="14" font-weight="700">1</text>
+      <text x="420" y="105" fill="#38bdf8" font-size="14" font-weight="700">*</text>
+      <text x="360" y="135" text-anchor="middle" fill="#94a3b8" font-size="10">PATIENT → APPOINTMENT</text>
+
+      <!-- M:N -->
+      <rect x="500" y="20" width="200" height="130" rx="10" fill="#0d1321" stroke="#818cf8" stroke-width="2"/>
+      <text x="600" y="48" text-anchor="middle" fill="#818cf8" font-size="13" font-weight="600">M:N Many-to-Many</text>
+      <line x1="530" y1="80" x2="670" y2="80" stroke="#818cf8" stroke-width="2"/>
+      <text x="530" y="105" fill="#818cf8" font-size="14" font-weight="700">*</text>
+      <text x="660" y="105" fill="#818cf8" font-size="14" font-weight="700">*</text>
+      <text x="600" y="135" text-anchor="middle" fill="#94a3b8" font-size="10">DOCTOR ↔ DEPARTMENT</text>
+
+      <!-- Optionality -->
+      <rect x="740" y="20" width="240" height="130" rx="10" fill="#0d1321" stroke="#fbbf24" stroke-width="2"/>
+      <text x="860" y="48" text-anchor="middle" fill="#fbbf24" font-size="13" font-weight="600">Optionality</text>
+      <text x="770" y="80" fill="#34d399" font-size="12" font-weight="600">0..1</text>
+      <text x="860" y="80" fill="#94a3b8" font-size="11">= optional (FK nullable)</text>
+      <text x="770" y="110" fill="#f472b6" font-size="12" font-weight="600">1..1</text>
+      <text x="860" y="110" fill="#94a3b8" font-size="11">= mandatory (FK NOT NULL)</text>
+      <text x="860" y="138" text-anchor="middle" fill="#64748b" font-size="9">min 0 = optional; min 1 = required</text>
+
+      <!-- 1:N rule explanation -->
+      <rect x="20" y="180" width="440" height="120" rx="10" fill="rgba(56,189,248,.04)" stroke="var(--border)" stroke-width="1.5"/>
+      <text x="240" y="208" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="600">1:N — FK Always on the N Side</text>
+      <text x="40" y="240" fill="#94a3b8" font-size="11">• One patient has many appointments</text>
+      <text x="40" y="262" fill="#94a3b8" font-size="11">• APPOINTMENT.patient_id → PATIENT.id</text>
+      <text x="40" y="284" fill="#94a3b8" font-size="11">• The FK is on APPOINTMENT (the "many" side)</text>
+
+      <!-- M:N rule explanation -->
+      <rect x="500" y="180" width="480" height="120" rx="10" fill="rgba(129,140,248,.04)" stroke="var(--border)" stroke-width="1.5"/>
+      <text x="740" y="208" text-anchor="middle" fill="#818cf8" font-size="13" font-weight="600">M:N — Always Needs a Junction Table</text>
+      <text x="520" y="240" fill="#94a3b8" font-size="11">• A doctor belongs to many departments</text>
+      <text x="520" y="262" fill="#94a3b8" font-size="11">• A department has many doctors</text>
+      <text x="520" y="284" fill="#94a3b8" font-size="11">• Implemented via DOCTOR_DEPARTMENT</text>
+      <text x="520" y="300" fill="#94a3b8" font-size="10">(doctor_id FK, department_id FK, Composite PK)</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ════════ 5 · JPA OWNING VS INVERSE ════════ -->
+<section id="jpa-owning">
+  <div class="sl pink"><span class="d"></span> JPA Mapping</div>
+  <h2>JPA Owning vs Inverse Side</h2>
+  <p class="desc">Use the <strong>foreign key location</strong> to decide which side owns a relationship in JPA. The side with the FK is normally the owning side because it controls the database relationship.</p>
+
+  <div class="diagram">
+    <div class="diagram-title">Owning vs Inverse — Visual Rule</div>
+    <svg viewBox="0 0 1000 280" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono,monospace">
+      <!-- Memory rule box -->
+      <rect x="20" y="20" width="960" height="70" rx="10" fill="rgba(251,191,36,.06)" stroke="#fbbf24" stroke-width="2"/>
+      <text x="500" y="50" text-anchor="middle" fill="#fbbf24" font-size="16" font-weight="700">MEMORY RULE: @JoinColumn = OWNING SIDE · mappedBy = INVERSE SIDE</text>
+      <text x="500" y="72" text-anchor="middle" fill="#64748b" font-size="11">mappedBy refers to the Java field name, NOT the DB column name</text>
+
+      <!-- Owning side example -->
+      <rect x="20" y="110" width="460" height="150" rx="10" fill="#0d1321" stroke="#34d399" stroke-width="2"/>
+      <rect x="20" y="110" width="460" height="35" rx="10" fill="rgba(52,211,153,.1)"/>
+      <text x="250" y="133" text-anchor="middle" fill="#34d399" font-size="13" font-weight="700">OWNING SIDE — Patient.java</text>
+      <text x="250" y="155" text-anchor="middle" fill="#64748b" font-size="10">Has the FK column in the database</text>
+      <text x="40" y="185" fill="#fbbf24" font-size="12">@OneToOne</text>
+      <text x="40" y="208" fill="#fbbf24" font-size="12">@JoinColumn</text>
+      <text x="200" y="208" fill="#94a3b8" font-size="11">(name = "insurance_id", unique = true)</text>
+      <text x="40" y="240" fill="#38bdf8" font-size="12">private Insurance insurance;</text>
+
+      <!-- Inverse side example -->
+      <rect x="520" y="110" width="460" height="150" rx="10" fill="#0d1321" stroke="#f472b6" stroke-width="2"/>
+      <rect x="520" y="110" width="460" height="35" rx="10" fill="rgba(244,114,182,.1)"/>
+      <text x="750" y="133" text-anchor="middle" fill="#f472b6" font-size="13" font-weight="700">INVERSE SIDE — Insurance.java</text>
+      <text x="750" y="155" text-anchor="middle" fill="#64748b" font-size="10">Points back with mappedBy</text>
+      <text x="540" y="185" fill="#fbbf24" font-size="12">@OneToOne</text>
+      <text x="540" y="208" fill="#f472b6" font-size="12">mappedBy = "insurance"</text>
+      <text x="540" y="232" fill="#94a3b8" font-size="10">↑ Java field name in Patient.java</text>
+      <text x="540" y="250" fill="#38bdf8" font-size="12">private Patient patient;</text>
+    </svg>
+  </div>
+
+  <table>
+    <thead><tr><th>Relationship</th><th>FK Location</th><th>JPA Owning Side</th><th>Inverse Side</th></tr></thead>
+    <tbody>
+      <tr><td>Patient — Insurance</td><td><code>patient.insurance_id</code></td><td><strong>Patient</strong> (@JoinColumn)</td><td>Insurance (mappedBy)</td></tr>
+      <tr><td>Patient — Appointment</td><td><code>appointment.patient_id</code></td><td><strong>Appointment</strong> (@JoinColumn)</td><td>Patient (mappedBy)</td></tr>
+      <tr><td>Doctor — Appointment</td><td><code>appointment.doctor_id</code></td><td><strong>Appointment</strong> (@JoinColumn)</td><td>Doctor (mappedBy)</td></tr>
+      <tr><td>Doctor — Department</td><td><code>doctor_department</code></td><td><strong>Side with @JoinTable</strong></td><td>Side with mappedBy</td></tr>
+      <tr><td>Department — Head Doctor</td><td><code>department.head_doctor_id</code></td><td><strong>Department</strong> (@JoinColumn)</td><td>Doctor (mappedBy)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ════════ 6 · JPA CODE ════════ -->
+<section id="jpa-code">
+  <div class="sl green"><span class="d"></span> JPA Implementation</div>
+  <h2>Complete JPA Entity Code</h2>
+
+  <div class="cols-2">
+    <div class="col-box">
+      <h3>Patient.java (Owning: 1:1 with Insurance)</h3>
+<pre><span class="ann">@Entity</span>
+<span class="ann">@Table</span>(name = <span class="str">"patient"</span>)
+<span class="kw">public class</span> <span class="type">Patient</span> {
+
+  <span class="ann">@Id</span>
+  <span class="ann">@GeneratedValue</span>(strategy =
+    <span class="type">GenerationType</span>.IDENTITY)
+  <span class="kw">private</span> <span class="type">Long</span> id;
+
+  <span class="ann">@Column</span>(nullable = <span class="num">false</span>, length = <span class="num">100</span>)
+  <span class="kw">private</span> <span class="type">String</span> name;
+
+  <span class="ann">@Column</span>(unique = <span class="num">true</span>)
+  <span class="kw">private</span> <span class="type">String</span> email;
+
+  <span class="cm">// ── 1:1 with Insurance (OWNING SIDE)</span>
+  <span class="ann">@OneToOne</span>
+  <span class="ann">@JoinColumn</span>(name = <span class="str">"insurance_id"</span>,
+    unique = <span class="num">true</span>)
+  <span class="kw">private</span> <span class="type">Insurance</span> insurance;
+
+  <span class="cm">// ── 1:N with Appointment (INVERSE)</span>
+  <span class="ann">@OneToMany</span>(mappedBy = <span class="str">"patient"</span>)
+  <span class="kw">private</span> <span class="type">List</span>&lt;<span class="type">Appointment</span>&gt; appointments;
+}</pre>
+    </div>
+    <div class="col-box">
+      <h3>Insurance.java (Inverse: 1:1 with Patient)</h3>
+<pre><span class="ann">@Entity</span>
+<span class="ann">@Table</span>(name = <span class="str">"insurance"</span>)
+<span class="kw">public class</span> <span class="type">Insurance</span> {
+
+  <span class="ann">@Id</span>
+  <span class="ann">@GeneratedValue</span>(strategy =
+    <span class="type">GenerationType</span>.IDENTITY)
+  <span class="kw">private</span> <span class="type">Long</span> id;
+
+  <span class="kw">private</span> <span class="type">String</span> policyNumber;
+  <span class="kw">private</span> <span class="type">String</span> provider;
+  <span class="kw">private</span> <span class="type">String</span> coverageType;
+
+  <span class="cm">// ── 1:1 (INVERSE SIDE)</span>
+  <span class="ann">@OneToOne</span>(mappedBy = <span class="str">"insurance"</span>)
+  <span class="kw">private</span> <span class="type">Patient</span> patient;
+}</pre>
+    </div>
+  </div>
+
+  <div class="cols-2" style="margin-top:1.2rem">
+    <div class="col-box">
+      <h3>Appointment.java (Owning: two N:1)</h3>
+<pre><span class="ann">@Entity</span>
+<span class="ann">@Table</span>(name = <span class="str">"appointment"</span>)
+<span class="kw">public class</span> <span class="type">Appointment</span> {
+
+  <span class="ann">@Id</span>
+  <span class="ann">@GeneratedValue</span>(strategy =
+    <span class="type">GenerationType</span>.IDENTITY)
+  <span class="kw">private</span> <span class="type">Long</span> id;
+
+  <span class="ann">@Column</span>(nullable = <span class="num">false</span>)
+  <span class="kw">private</span> <span class="type">LocalDateTime</span> appointmentDate;
+
+  <span class="ann">@Enumerated</span>(<span class="type">EnumType</span>.STRING)
+  <span class="kw">private</span> <span class="type">AppointmentStatus</span> status;
+
+  <span class="cm">// ── N:1 with Patient (OWNING SIDE)</span>
+  <span class="ann">@ManyToOne</span>(optional = <span class="num">false</span>)
+  <span class="ann">@JoinColumn</span>(name = <span class="str">"patient_id"</span>,
+    nullable = <span class="num">false</span>)
+  <span class="kw">private</span> <span class="type">Patient</span> patient;
+
+  <span class="cm">// ── N:1 with Doctor (OWNING SIDE)</span>
+  <span class="ann">@ManyToOne</span>(optional = <span class="num">false</span>)
+  <span class="ann">@JoinColumn</span>(name = <span class="str">"doctor_id"</span>,
+    nullable = <span class="num">false</span>)
+  <span class="kw">private</span> <span class="type">Doctor</span> doctor;
+}</pre>
+    </div>
+    <div class="col-box">
+      <h3>Doctor.java &amp; Department.java (M:N)</h3>
+<pre><span class="cm">// ── Doctor.java ──</span>
+<span class="ann">@Entity</span>
+<span class="kw">public class</span> <span class="type">Doctor</span> {
+  <span class="ann">@Id</span>
+  <span class="ann">@GeneratedValue</span>(strategy =
+    <span class="type">GenerationType</span>.IDENTITY)
+  <span class="kw">private</span> <span class="type">Long</span> id;
+  <span class="kw">private</span> <span class="type">String</span> name;
+  <span class="kw">private</span> <span class="type">String</span> specialization;
+
+  <span class="cm">// M:N — owns via @JoinTable</span>
+  <span class="ann">@ManyToMany</span>
+  <span class="ann">@JoinTable</span>(
+    name = <span class="str">"doctor_department"</span>,
+    joinColumns = <span class="ann">@JoinColumn</span>(
+      name = <span class="str">"doctor_id"</span>),
+    inverseJoinColumns = <span class="ann">@JoinColumn</span>(
+      name = <span class="str">"department_id"</span>))
+  <span class="kw">private</span> <span class="type">Set</span>&lt;<span class="type">Department</span>&gt; departments;
+
+  <span class="cm">// 1:N Inverse (appointments)</span>
+  <span class="ann">@OneToMany</span>(mappedBy = <span class="str">"doctor"</span>)
+  <span class="kw">private</span> <span class="type">List</span>&lt;<span class="type">Appointment</span>&gt; appointments;
+}
+
+<span class="cm">// ── Department.java ──</span>
+<span class="ann">@Entity</span>
+<span class="kw">public class</span> <span class="type">Department</span> {
+  <span class="ann">@Id</span>
+  <span class="ann">@GeneratedValue</span>(strategy =
+    <span class="type">GenerationType</span>.IDENTITY)
+  <span class="kw">private</span> <span class="type">Long</span> id;
+  <span class="kw">private</span> <span class="type">String</span> name;
+
+  <span class="cm">// M:N Inverse</span>
+  <span class="ann">@ManyToMany</span>(mappedBy = <span class="str">"departments"</span>)
+  <span class="kw">private</span> <span class="type">Set</span>&lt;<span class="type">Doctor</span>&gt; doctors;
+
+  <span class="cm">// N:1 to head doctor (OWNING)</span>
+  <span class="ann">@ManyToOne</span>
+  <span class="ann">@JoinColumn</span>(name = <span class="str">"head_doctor_id"</span>)
+  <span class="kw">private</span> <span class="type">Doctor</span> headDoctor;
+}</pre>
+    </div>
+  </div>
+
+  <div class="tip"><strong>Tip:</strong> If the M:N junction table has extra attributes (e.g., assignment_date, role), prefer an explicit entity (e.g., <code>DoctorDepartment</code> with its own <code>@Id</code>) instead of a bare <code>@ManyToMany</code>.</div>
+</section>
+
+<!-- ════════ 7 · KEYS ════════ -->
+<section id="keys">
+  <div class="sl yellow"><span class="d"></span> Keys</div>
+  <h2>Database Keys Explained</h2>
+
+  <table>
+    <thead><tr><th>Key Type</th><th>Purpose</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><strong>PK (Primary Key)</strong></td><td>Row identity, unique and normally NOT NULL</td><td><code>patient_id</code></td></tr>
+      <tr><td><strong>FK (Foreign Key)</strong></td><td>Reference to another table's PK</td><td><code>appointment.patient_id</code></td></tr>
+      <tr><td><strong>Candidate Key</strong></td><td>Any minimal unique identifier</td><td><code>email</code> if UNIQUE</td></tr>
+      <tr><td><strong>Alternate Key</strong></td><td>Candidate key not selected as PK</td><td><code>policy_number</code></td></tr>
+      <tr><td><strong>Composite PK</strong></td><td>Multiple columns together identify a row</td><td><code>(doctor_id, department_id)</code></td></tr>
+      <tr><td><strong>Surrogate Key</strong></td><td>Artificial identifier (no business meaning)</td><td><code>BIGINT id</code> (auto-generated)</td></tr>
+    </tbody>
+  </table>
+
+  <div class="warn"><strong>Warning:</strong> Using a natural key (e.g., email) as PK can cause problems if values change. Surrogate keys (auto-increment <code>id</code>) are safer for most cases.</div>
+</section>
+
+<!-- ════════ 8 · IDENTIFYING VS NON-IDENTIFYING ════════ -->
+<section id="identifying">
+  <div class="sl pink"><span class="d"></span> Relationship Type</div>
+  <h2>Identifying vs Non-Identifying Relationships</h2>
+
+  <div class="cols-2">
+    <div class="col-box">
+      <h3 style="color:var(--accent-3)">Non-Identifying</h3>
+      <p>Child has its <strong>own independent PK</strong>; parent PK is only an FK.</p>
+      <pre><span class="cm">APPOINTMENT(</span>
+  <span class="pk">id</span>            <span class="cm">← own PK</span>,
+  appointment_date,
+  <span class="fk">patient_id</span>    <span class="cm">← FK only, not part of PK</span>,
+  <span class="fk">doctor_id</span>     <span class="cm">← FK only</span>
+<span class="cm">)</span></pre>
+      <p>This is the <strong>most common</strong> pattern. The child can exist with a separate identity.</p>
+    </div>
+    <div class="col-box">
+      <h3 style="color:var(--accent-4)">Identifying</h3>
+      <p>Child PK <strong>includes parent PK</strong>; child identity depends on parent.</p>
+      <pre><span class="cm">ORDER_ITEM(</span>
+  <span class="pk">order_id</span>      <span class="cm">← part of composite PK</span>,
+  <span class="pk">product_id</span>    <span class="cm">← part of composite PK</span>,
+  quantity,
+  unit_price
+<span class="cm">)</span></pre>
+      <p>The child <strong>cannot exist without</strong> the parent. Used in parent-child dependencies.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 9 · STRONG VS WEAK ENTITY ════════ -->
+<section id="strong-weak">
+  <div class="sl green"><span class="d"></span> Entity Strength</div>
+  <h2>Strong vs Weak Entity</h2>
+
+  <div class="cols-2">
+    <div class="col-box">
+      <h3 style="color:var(--accent-3)">Strong Entity</h3>
+      <ul>
+        <li>Has its <strong>own primary key</strong></li>
+        <li>Can be uniquely identified <strong>independently</strong></li>
+        <li>Represented with a <strong>single rectangle</strong> in ERD</li>
+      </ul>
+      <p style="margin-top:.5rem;font-size:.82rem;color:var(--accent)">Examples: PATIENT, DOCTOR, DEPARTMENT</p>
+    </div>
+    <div class="col-box">
+      <h3 style="color:var(--accent-4)">Weak Entity</h3>
+      <ul>
+        <li><strong>Depends on another entity</strong> for identification/existence</li>
+        <li>Owner's key often forms part of its PK</li>
+        <li>Represented with a <strong>double rectangle</strong> in ERD</li>
+        <li>Has an <strong>identifying relationship</strong> (double diamond)</li>
+      </ul>
+      <p style="margin-top:.5rem;font-size:.82rem;color:var(--accent)">Examples: ORDER_ITEM depends on ORDER, PRESCRIPTION_DETAIL depends on PRESCRIPTION</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 10 · RELATIONSHIP ATTRIBUTES ════════ -->
+<section id="relationship-attrs">
+  <div class="sl purple"><span class="d"></span> Advanced Modeling</div>
+  <h2>Relationship Attributes</h2>
+  <p class="desc">When a relationship itself carries attributes, model it as an <strong>associative entity</strong>.</p>
+
+  <div class="diagram">
+    <div class="diagram-title">STUDENT — ENROLLMENT — COURSE (Associative Entity)</div>
+    <svg viewBox="0 0 900 200" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono,monospace">
+      <!-- STUDENT -->
+      <rect x="30" y="40" width="200" height="100" rx="10" fill="#0d1321" stroke="#38bdf8" stroke-width="2"/>
+      <rect x="30" y="40" width="200" height="35" rx="10" fill="rgba(56,189,248,.1)"/>
+      <text x="130" y="63" text-anchor="middle" fill="#38bdf8" font-size="13" font-weight="700">STUDENT</text>
+      <text x="50" y="100" fill="#f472b6" font-size="11" font-weight="600">🔑 student_id</text>
+      <text x="50" y="125" fill="#94a3b8" font-size="11">name, email</text>
+
+      <!-- ENROLLMENT (associative) -->
+      <rect x="330" y="20" width="240" height="150" rx="10" fill="#0d1321" stroke="#fbbf24" stroke-width="2.5"/>
+      <rect x="330" y="20" width="240" height="35" rx="10" fill="rgba(251,191,36,.1)"/>
+      <text x="450" y="43" text-anchor="middle" fill="#fbbf24" font-size="13" font-weight="700">ENROLLMENT</text>
+      <text x="350" y="80" fill="#f472b6" font-size="11" font-weight="600">🔑 student_id</text>
+      <text x="350" y="103" fill="#f472b6" font-size="11" font-weight="600">🔑 course_id</text>
+      <text x="350" y="130" fill="#34d399" font-size="11">enrollment_date</text>
+      <text x="350" y="155" fill="#34d399" font-size="11">grade</text>
+
+      <!-- COURSE -->
+      <rect x="650" y="40" width="200" height="100" rx="10" fill="#0d1321" stroke="#34d399" stroke-width="2"/>
+      <rect x="650" y="40" width="200" height="35" rx="10" fill="rgba(52,211,153,.1)"/>
+      <text x="750" y="63" text-anchor="middle" fill="#34d399" font-size="13" font-weight="700">COURSE</text>
+      <text x="670" y="100" fill="#f472b6" font-size="11" font-weight="600">🔑 course_id</text>
+      <text x="670" y="125" fill="#94a3b8" font-size="11">title, credits</text>
+
+      <!-- Lines -->
+      <line x1="230" y1="90" x2="330" y2="95" stroke="#38bdf8" stroke-width="2" marker-end="url(#aBlue)"/>
+      <line x1="570" y1="95" x2="650" y2="90" stroke="#34d399" stroke-width="2" marker-end="url(#aGreen)"/>
+      <text x="255" y="80" fill="#38bdf8" font-size="11" font-weight="600">1:N</text>
+      <text x="610" y="80" fill="#34d399" font-size="11" font-weight="600">N:1</text>
+    </svg>
+  </div>
+  <p>The <strong>relationship attributes</strong> (enrollment_date, grade) belong to the association itself — they cannot live on STUDENT or COURSE alone. The associative entity <code>ENROLLMENT</code> has a <strong>composite PK</strong> of <code>(student_id, course_id)</code>.</p>
+</section>
+
+<!-- ════════ 11 · RECURSIVE ════════ -->
+<section id="recursive">
+  <div class="sl yellow"><span class="d"></span> Self-Reference</div>
+  <h2>Recursive / Self-Referencing Relationship</h2>
+  <p class="desc">An entity can relate to itself. Example: one manager manages many employees; an employee may have zero or one manager.</p>
+
+  <div class="cols-2">
+    <div class="col-box">
+      <h3>ERD Representation</h3>
+      <pre>EMPLOYEE ←──────────→ EMPLOYEE
+     manager_id → id
+
+One manager manages many employees.
+An employee has 0 or 1 manager.</pre>
+    </div>
+    <div class="col-box">
+      <h3>JPA Implementation</h3>
+<pre><span class="ann">@Entity</span>
+<span class="kw">public class</span> <span class="type">Employee</span> {
+  <span class="ann">@Id</span>
+  <span class="ann">@GeneratedValue</span>
+  <span class="kw">private</span> <span class="type">Long</span> id;
+  <span class="kw">private</span> <span class="type">String</span> name;
+
+  <span class="cm">// Self-referencing N:1</span>
+  <span class="ann">@ManyToOne</span>
+  <span class="ann">@JoinColumn</span>(name = <span class="str">"manager_id"</span>)
+  <span class="kw">private</span> <span class="type">Employee</span> manager;
+
+  <span class="cm">// Self-referencing 1:N</span>
+  <span class="ann">@OneToMany</span>(mappedBy = <span class="str">"manager"</span>)
+  <span class="kw">private</span> <span class="type">List</span>&lt;<span class="type">Employee</span>&gt; subordinates;
+}</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 12 · TERNARY ════════ -->
+<section id="ternary">
+  <div class="sl pink"><span class="d"></span> N-ary Relationships</div>
+  <h2>Ternary / N-ary Relationship</h2>
+  <p class="desc">A relationship involving <strong>3 or more entities</strong>. Example: a supplier supplies a product to a specific warehouse.</p>
+
+  <div class="cols-2">
+    <div class="col-box">
+      <h3>ERD</h3>
+      <pre>SUPPLIER ───┐
+PRODUCT  ───┤── SUPPLY ── quantity
+WAREHOUSE ──┘</pre>
+      <p style="margin-top:.5rem">Three entities connected by a single diamond (ternary relationship).</p>
+    </div>
+    <div class="col-box">
+      <h3>Relational Implementation</h3>
+<pre><span class="cm">SUPPLY(</span>
+  <span class="pk">supplier_id</span>  <span class="cm">→ SUPPLIER</span>,
+  <span class="pk">product_id</span>   <span class="cm">→ PRODUCT</span>,
+  <span class="pk">warehouse_id</span> <span class="cm">→ WAREHOUSE</span>,
+  quantity,
+  <span class="pk">PRIMARY KEY</span>(supplier_id,
+    product_id, warehouse_id)
+<span class="cm">)</span></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 13 · SUPERTYPE/SUBTYPE ════════ -->
+<section id="supertype">
+  <div class="sl purple"><span class="d"></span> Inheritance</div>
+  <h2>Supertype / Subtype (Inheritance)</h2>
+  <p class="desc">Use when entities share common attributes but have specialized attributes.</p>
+
+  <div class="diagram">
+    <div class="diagram-title">PERSON → PATIENT / DOCTOR (Inheritance Hierarchy)</div>
+    <svg viewBox="0 0 700 250" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono,monospace">
+      <!-- PERSON supertype -->
+      <rect x="250" y="15" width="200" height="80" rx="10" fill="#0d1321" stroke="#fbbf24" stroke-width="2.5"/>
+      <rect x="250" y="15" width="200" height="30" rx="10" fill="rgba(251,191,36,.1)"/>
+      <text x="350" y="36" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700">PERSON (Supertype)</text>
+      <text x="270" y="65" fill="#94a3b8" font-size="10">id, name, email, phone</text>
+      <text x="270" y="82" fill="#94a3b8" font-size="10">date_of_birth</text>
+
+      <!-- D discriminator circle -->
+      <circle cx="350" cy="120" r="15" fill="none" stroke="#fbbf24" stroke-width="2"/>
+      <text x="350" y="125" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700">d</text>
+
+      <!-- Lines -->
+      <line x1="350" y1="95" x2="350" y2="105" stroke="#fbbf24" stroke-width="2"/>
+      <line x1="350" y1="135" x2="180" y2="180" stroke="#38bdf8" stroke-width="2" marker-end="url(#aBlue)"/>
+      <line x1="350" y1="135" x2="520" y2="180" stroke="#34d399" stroke-width="2" marker-end="url(#aGreen)"/>
+
+      <!-- PATIENT subtype -->
+      <rect x="80" y="180" width="200" height="60" rx="10" fill="#0d1321" stroke="#38bdf8" stroke-width="2"/>
+      <text x="180" y="205" text-anchor="middle" fill="#38bdf8" font-size="12" font-weight="700">PATIENT (Subtype)</text>
+      <text x="100" y="228" fill="#94a3b8" font-size="10">insurance_id, allergies</text>
+
+      <!-- DOCTOR subtype -->
+      <rect x="420" y="180" width="200" height="60" rx="10" fill="#0d1321" stroke="#34d399" stroke-width="2"/>
+      <text x="520" y="205" text-anchor="middle" fill="#34d399" font-size="12" font-weight="700">DOCTOR (Subtype)</text>
+      <text x="440" y="228" fill="#94a3b8" font-size="10">specialization, license_no</text>
+    </svg>
+  </div>
+
+  <h3>JPA Strategies</h3>
+  <table>
+    <thead><tr><th>Strategy</th><th>How It Works</th><th>Discriminator</th></tr></thead>
+    <tbody>
+      <tr><td><code>@Inheritance(SINGLE_TABLE)</code></td><td>All types in one table</td><td>DTYPE column (default)</td></tr>
+      <tr><td><code>@Inheritance(JOINED)</code></td><td>Each type in separate table, joined by PK</td><td>No discriminator needed</td></tr>
+      <tr><td><code>@Inheritance(TABLE_PER_CLASS)</code></td><td>Each concrete class has its own full table</td><td>No discriminator</td></tr>
+    </tbody>
+  </table>
+
+<pre><span class="ann">@Entity</span>
+<span class="ann">@Inheritance</span>(strategy = <span class="type">InheritanceType</span>.JOINED)
+<span class="kw">public class</span> <span class="type">Person</span> {
+  <span class="ann">@Id</span> <span class="ann">@GeneratedValue</span>
+  <span class="kw">private</span> <span class="type">Long</span> id;
+  <span class="kw">private</span> <span class="type">String</span> name;
+}
+
+<span class="ann">@Entity</span>
+<span class="kw">public class</span> <span class="type">Patient</span> <span class="kw">extends</span> <span class="type">Person</span> {
+  <span class="kw">private</span> <span class="type">String</span> insuranceId;
+}
+
+<span class="ann">@Entity</span>
+<span class="kw">public class</span> <span class="type">Doctor</span> <span class="kw">extends</span> <span class="type">Person</span> {
+  <span class="kw">private</span> <span class="type">String</span> specialization;
+}</pre>
+</section>
+
+<!-- ════════ 14 · NULLABILITY ════════ -->
+<section id="nullability">
+  <div class="sl yellow"><span class="d"></span> Optionality</div>
+  <h2>Nullability &amp; Mandatory Relationships</h2>
+
+  <div class="cols-2">
+    <div class="col-box">
+      <h3 style="color:var(--accent-3)">Optional Relationship</h3>
+      <ul>
+        <li>Minimum cardinality = <strong>0</strong></li>
+        <li>FK is often <strong>nullable</strong></li>
+        <li>Example: <code>department.head_doctor_id NULL</code> — no head assigned yet</li>
+      </ul>
+    </div>
+    <div class="col-box">
+      <h3 style="color:var(--accent-4)">Mandatory Relationship</h3>
+      <ul>
+        <li>Minimum cardinality = <strong>1</strong></li>
+        <li>FK is often <strong>NOT NULL</strong></li>
+        <li>Example: <code>appointment.doctor_id NOT NULL</code> — every appointment requires a doctor</li>
+      </ul>
+    </div>
+  </div>
+
+  <table>
+    <thead><tr><th>Relationship</th><th>Optionality</th><th>FK Constraint</th></tr></thead>
+    <tbody>
+      <tr><td>Patient → Insurance</td><td>Optional (0..1)</td><td><code>insurance_id</code> nullable</td></tr>
+      <tr><td>Patient → Appointment</td><td>Mandatory (1)</td><td><code>patient_id</code> NOT NULL</td></tr>
+      <tr><td>Doctor → Appointment</td><td>Mandatory (1)</td><td><code>doctor_id</code> NOT NULL</td></tr>
+      <tr><td>Department → Head Doctor</td><td>Optional (0..1)</td><td><code>head_doctor_id</code> nullable</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ════════ 15 · ERD → DB MAPPING ════════ -->
+<section id="erd-to-db">
+  <div class="sl green"><span class="d"></span> Mapping</div>
+  <h2>ERD → Relational Database Mapping</h2>
+
+  <table>
+    <thead><tr><th>ER Concept</th><th>Relational Implementation</th></tr></thead>
+    <tbody>
+      <tr><td>Entity</td><td>Table</td></tr>
+      <tr><td>Attribute</td><td>Column</td></tr>
+      <tr><td>Identifier</td><td>Primary Key</td></tr>
+      <tr><td>1:N</td><td>FK on N side</td></tr>
+      <tr><td>1:1</td><td>FK + UNIQUE constraint</td></tr>
+      <tr><td>M:N</td><td>Junction table with two FKs</td></tr>
+      <tr><td>Optional</td><td>Nullable FK</td></tr>
+      <tr><td>Mandatory</td><td>NOT NULL FK</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ════════ 16 · NORMALIZATION ════════ -->
+<section id="normalization">
+  <div class="sl pink"><span class="d"></span> Normalization</div>
+  <h2>Database Normalization</h2>
+  <p class="desc">Practical goal: store each fact in the <strong>appropriate place</strong> and reduce unnecessary duplication.</p>
+
+  <div class="cols-3">
+    <div class="col-box">
+      <h3 style="color:var(--accent-3)">1NF — First Normal Form</h3>
+      <ul>
+        <li>Atomic values (no multi-valued columns)</li>
+        <li>No repeating groups</li>
+        <li>Each cell holds a single value</li>
+      </ul>
+      <p style="margin-top:.5rem;font-size:.8rem;color:var(--accent)">Bad: <code>phones: "123, 456"</code><br>Good: separate rows or table</p>
+    </div>
+    <div class="col-box">
+      <h3 style="color:var(--accent)">2NF — Second Normal Form</h3>
+      <ul>
+        <li>Must be in 1NF</li>
+        <li>No <strong>partial dependency</strong> on part of a composite key</li>
+        <li>Every non-key column depends on the <em>entire</em> PK</li>
+      </ul>
+      <p style="margin-top:.5rem;font-size:.8rem;color:var(--accent)">Only relevant when composite PK exists</p>
+    </div>
+    <div class="col-box">
+      <h3 style="color:var(--accent-4)">3NF — Third Normal Form</h3>
+      <ul>
+        <li>Must be in 2NF</li>
+        <li>No <strong>transitive dependency</strong> of non-key attributes on the key</li>
+        <li>Non-key columns depend only on the PK, not on other non-key columns</li>
+      </ul>
+      <p style="margin-top:.5rem;font-size:.8rem;color:var(--accent)">Bad: patient → zip → city (transitive)<br>Good: separate address table</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 17 · CONSTRAINTS ════════ -->
+<section id="constraints">
+  <div class="sl yellow"><span class="d"></span> Constraints</div>
+  <h2>Constraints &amp; Referential Integrity</h2>
+
+  <table>
+    <thead><tr><th>Constraint</th><th>Purpose</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>PRIMARY KEY</code></td><td>Unique row identity</td><td><code>patient_id BIGINT PRIMARY KEY</code></td></tr>
+      <tr><td><code>FOREIGN KEY</code></td><td>Valid reference to parent</td><td><code>FOREIGN KEY (patient_id) REFERENCES patient(id)</code></td></tr>
+      <tr><td><code>UNIQUE</code></td><td>Prevents duplicate values</td><td><code>email VARCHAR(255) UNIQUE</code></td></tr>
+      <tr><td><code>NOT NULL</code></td><td>Makes a value mandatory</td><td><code>name VARCHAR(100) NOT NULL</code></td></tr>
+      <tr><td><code>CHECK</code></td><td>Restricts allowed values</td><td><code>CHECK (age >= 0 AND age <= 150)</code></td></tr>
+      <tr><td><code>DEFAULT</code></td><td>Value when none provided</td><td><code>status VARCHAR(20) DEFAULT 'PENDING'</code></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ════════ 18 · DELETE / UPDATE ACTIONS ════════ -->
+<section id="delete-actions">
+  <div class="sl pink"><span class="d"></span> Referential Actions</div>
+  <h2>Delete / Update Actions</h2>
+
+  <table>
+    <thead><tr><th>Action</th><th>Meaning</th><th>When to Use</th></tr></thead>
+    <tbody>
+      <tr><td><code>CASCADE</code></td><td>Propagate parent change to dependent rows</td><td>Parent-child ownership (e.g., ORDER → ORDER_ITEM)</td></tr>
+      <tr><td><code>SET NULL</code></td><td>Set child FK to NULL</td><td>Optional relationship (e.g., department head leaving)</td></tr>
+      <tr><td><code>RESTRICT / NO ACTION</code></td><td>Prevent operation when dependents exist</td><td>Safety default; prevents accidental data loss</td></tr>
+      <tr><td><code>SET DEFAULT</code></td><td>Set child FK to a default value</td><td>Rarely used; when a default parent exists</td></tr>
+    </tbody>
+  </table>
+
+  <div class="warn"><strong>Warning:</strong> Use CASCADE carefully — cascading deletes can remove many dependent rows. Prefer RESTRICT in production and handle deletion logic in application code.</div>
+
+  <h3>JPA Cascade Types</h3>
+<pre><span class="ann">@OneToMany</span>(
+  mappedBy = <span class="str">"patient"</span>,
+  cascade = <span class="type">CascadeType</span>.ALL,     <span class="cm">// all operations</span>
+  orphanRemoval = <span class="num">true</span>           <span class="cm">// remove from list → delete</span>
+)
+<span class="kw">private</span> <span class="type">List</span>&lt;<span class="type">Appointment</span>&gt; appointments;
+
+<span class="cm">// Available cascade types:</span>
+<span class="cm">// CascadeType.PERSIST   — cascade save</span>
+<span class="cm">// CascadeType.MERGE     — cascade update</span>
+<span class="cm">// CascadeType.REMOVE    — cascade delete</span>
+<span class="cm">// CascadeType.REFRESH   — cascade refresh</span>
+<span class="cm">// CascadeType.DETACH    — cascade detach</span>
+<span class="cm">// CascadeType.ALL       — all of the above</span></pre>
+</section>
+
+<!-- ════════ 19 · HOW TO READ AN ERD ════════ -->
+<section id="reading-erd">
+  <div class="sl green"><span class="d"></span> Skill</div>
+  <h2>How to Read an ERD — Step by Step</h2>
+
+  <div class="cols-2">
+    <div class="col-box">
+      <h3>7-Step Reading Process</h3>
+      <ul>
+        <li><strong>1.</strong> Find every entity/table and list them</li>
+        <li><strong>2.</strong> Find every foreign key</li>
+        <li><strong>3.</strong> Read cardinality at both ends (1, *, 0..1)</li>
+        <li><strong>4.</strong> Classify each relationship as 1:1, 1:N, or M:N</li>
+        <li><strong>5.</strong> For M:N — locate the junction table</li>
+        <li><strong>6.</strong> Check optionality: 0 = optional, 1 = mandatory</li>
+        <li><strong>7.</strong> Look for relationship attributes needing an associative entity</li>
+      </ul>
+    </div>
+    <div class="col-box">
+      <h3>JPA-Specific Steps</h3>
+      <ul>
+        <li><strong>8.</strong> Identify which side has <code>@JoinColumn</code> (owning side)</li>
+        <li><strong>9.</strong> Identify which side uses <code>mappedBy</code> (inverse side)</li>
+        <li><strong>10.</strong> Check cascade types and orphan removal settings</li>
+        <li><strong>11.</strong> Check fetch types (<code>LAZY</code> vs <code>EAGER</code>)</li>
+        <li><strong>12.</strong> Verify <code>@Enumerated</code> for status/type fields</li>
+        <li><strong>13.</strong> Look for inheritance mapping strategies</li>
+        <li><strong>14.</strong> Check <code>@Version</code> for optimistic locking</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 20 · COMMON MISTAKES ════════ -->
+<section id="mistakes">
+  <div class="sl yellow"><span class="d"></span> Pitfalls</div>
+  <h2>Common Mistakes</h2>
+
+  <div class="cols-3">
+    <div class="col-box">
+      <h3 style="color:var(--accent-4)">FK Mistakes</h3>
+      <ul>
+        <li>FK on wrong side of 1:N (should be on N side)</li>
+        <li>Assuming FK alone means 1:1 (need UNIQUE too)</li>
+        <li>Ignoring NULL/NOT NULL when modeling optionality</li>
+      </ul>
+    </div>
+    <div class="col-box">
+      <h3 style="color:var(--accent-5)">JPA Mistakes</h3>
+      <ul>
+        <li>Making both sides the owner (only one owns)</li>
+        <li>Confusing <code>mappedBy</code> with a DB column name (it's a Java field name)</li>
+        <li>Using <code>@ManyToMany</code> when junction table has meaningful attributes</li>
+      </ul>
+    </div>
+    <div class="col-box">
+      <h3 style="color:var(--accent)">Design Mistakes</h3>
+      <ul>
+        <li>Confusing <code>0..*</code> with <code>1..*</code> (optionality matters)</li>
+        <li>Not modeling relationship attributes as entities</li>
+        <li>Over-normalizing or under-normalizing</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ════════ 21 · MEMORY RULES ════════ -->
+<section id="memory-rules">
+  <div class="sl purple"><span class="d"></span> Reference</div>
+  <h2>Final Memory Rules</h2>
+
+  <table>
+    <thead><tr><th>Rule</th><th>Remember</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1:N</strong></td><td>FK on N side</td></tr>
+      <tr><td><strong>1:1</strong></td><td>FK + UNIQUE</td></tr>
+      <tr><td><strong>M:N</strong></td><td>Junction table with two FKs</td></tr>
+      <tr><td><strong>Optional</strong></td><td>Minimum = 0; FK often nullable</td></tr>
+      <tr><td><strong>Mandatory</strong></td><td>Minimum = 1; FK often NOT NULL</td></tr>
+      <tr><td><strong>JPA Owner</strong></td><td><code>@JoinColumn</code> — controls FK mapping</td></tr>
+      <tr><td><strong>JPA Inverse</strong></td><td><code>mappedBy</code> — mirrors owner (Java field name!)</td></tr>
+      <tr><td><strong>Composite Key</strong></td><td>Multiple columns identify one row</td></tr>
+      <tr><td><strong>Relationship Attributes</strong></td><td>Use an associative entity when appropriate</td></tr>
+      <tr><td><strong>Identifying</strong></td><td>Child PK includes parent PK</td></tr>
+      <tr><td><strong>Non-Identifying</strong></td><td>Child has own PK; parent PK is FK only</td></tr>
+      <tr><td><strong>CASCADE</strong></td><td>Use carefully — can delete many rows</td></tr>
+      <tr><td><strong>Normalization</strong></td><td>1NF: atomic → 2NF: no partial dep → 3NF: no transitive dep</td></tr>
+    </tbody>
+  </table>
+
+  <div class="tip" style="margin-top:1.5rem"><strong>Core mental model:</strong> ERD describes business relationships. PKs, FKs, and constraints implement them in the database. JPA maps that schema into Java objects. Keep these three layers distinct and you'll never confuse owning vs inverse sides again.</div>
+</section>
+
+<!-- ════════ 22 · JPA QUICK REFERENCE ════════ -->
+<section>
+  <div class="sl green"><span class="d"></span> JPA Quick Reference</div>
+  <h2>JPA Relationship Quick Reference</h2>
+
+  <div class="cols-2">
+    <div class="col-box">
+      <table>
+        <thead><tr><th>DB Relationship</th><th>Typical JPA</th></tr></thead>
+        <tbody>
+          <tr><td>1:1</td><td><code>@OneToOne</code></td></tr>
+          <tr><td>1:N</td><td><code>@OneToMany</code> + <code>@ManyToOne</code></td></tr>
+          <tr><td>N:1</td><td><code>@ManyToOne</code></td></tr>
+          <tr><td>M:N</td><td><code>@ManyToMany</code></td></tr>
+          <tr><td>Self-reference</td><td><code>@ManyToOne</code> / <code>@OneToMany</code> on same entity</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="col-box">
+      <h3>1:N Pattern (Standard)</h3>
+<pre><span class="cm">// Parent (inverse side)</span>
+<span class="ann">@OneToMany</span>(mappedBy = <span class="str">"patient"</span>)
+<span class="kw">private</span> <span class="type">List</span>&lt;<span class="type">Appointment</span>&gt; appointments;
+
+<span class="cm">// Child / owning side</span>
+<span class="ann">@ManyToOne</span>
+<span class="ann">@JoinColumn</span>(name = <span class="str">"patient_id"</span>)
+<span class="kw">private</span> <span class="type">Patient</span> patient;
+
+<span class="cm">// Because appointment.patient_id is the FK,</span>
+<span class="cm">// Appointment is the owning side.</span></pre>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p>ER Diagram &amp; JPA Mapping Cheat Sheet · <span>Complete Reference</span> · MiMo</p>
+</footer>
+
+</div>
+</body>
+</html>
